@@ -72,6 +72,13 @@ Hierarchy: **Project › Thread › Post.**
   geometric shapes, technical/APL, arrows, warning/status, math/logic). All BMP, no surrogate
   pairs. Drop-in dataset at `research/symbols.json`; rationale + rendering caveats in
   `research/02-symbol-dataset.md`. Note: half-width katakana still weighs 2 (see ticket 01).
+- [Overall app layout & UX](../issues/05-app-layout-ux.md) — **Variant A: classic 3-pane** —
+  Project/Thread navigator left · vertical Post-stack thread editor center · Symbols/Styles
+  side panel docked right as a fixed third column · per-Post copy + "Open in X" in each Post
+  footer · settings + JSON import/export in the top bar. Picked over B (writing-first with
+  on-demand drawers) and C (horizontal TweetDeck deck) chiefly to keep the symbol browser —
+  the **core** feature — always visible with zero clicks. Grey-box wireframe of all three
+  variants preserved on throwaway branch `prototype/05-layout`.
 - [Editor input mechanism + cursor-aware insertion](../issues/04-editor-input-mechanism.md) —
   **reverses the `<textarea>` recommendation:** `contenteditable` via **Lexical** (the way
   X.com's composer works), chosen to enable inline over-limit shading. Plain text is canonical
@@ -88,9 +95,9 @@ Hierarchy: **Project › Thread › Post.**
 Fog — graduates into sharp tickets as the decisions above resolve:
 
 - **Build/execution work** (graduates once persistence #3, input mechanism #4, layout #5,
-  and theme #6 resolve): app scaffold; Project/Thread/Post navigator; thread & post editor;
-  symbol browser; Styles tab; templates; global char-limit setting; per-Post copy +
-  "Open in X"; JSON export/import.
+  and theme #6 resolve — **only #6 remains**): app scaffold; Project/Thread/Post navigator;
+  thread & post editor; symbol browser; Styles tab; templates; global char-limit setting;
+  per-Post copy + "Open in X"; JSON export/import. Layout locked to the #5 Variant-A 3-pane.
 - Whole-thread **template skeletons** (MVP ships snippet templates only).
 - **Per-thread** char-limit override (MVP ships a single global limit).
 - **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,
