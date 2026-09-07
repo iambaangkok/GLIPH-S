@@ -58,6 +58,11 @@ Hierarchy: **Project › Thread › Post.**
   cleanly wires the global limit and returns `weightedLength`/`valid`/`permillage`. ~50–80 kB
   gz (twemoji-parser dominates), acceptable. Watch: half-width katakana & most glyphs above
   U+10FF weigh **2** (halves effective limit for symbol-heavy posts); emoji ZWJ needs v3 config.
+- [Curate the sci-fi/techwear symbol dataset](../issues/02-scifi-symbol-dataset.md) — 649
+  verified glyphs across 8 categories (CJK brackets, half-width katakana, box-drawing & blocks,
+  geometric shapes, technical/APL, arrows, warning/status, math/logic). All BMP, no surrogate
+  pairs. Drop-in dataset at `research/symbols.json`; rationale + rendering caveats in
+  `research/02-symbol-dataset.md`. Note: half-width katakana still weighs 2 (see ticket 01).
 
 ## Not yet specified
 

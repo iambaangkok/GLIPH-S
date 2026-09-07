@@ -1,7 +1,7 @@
 # localStorage schema & persistence
 
 Type: grilling
-Status: open
+Status: claimed (assigned: iambaangkok)
 Blocked by: —
 
 ## Question

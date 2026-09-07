@@ -1,0 +1,904 @@
+# Sci-Fi / Techwear Symbol Dataset — Research
+
+Ticket: `.scratch/tweet-typer/issues/02-scifi-symbol-dataset.md`
+Dataset: `.scratch/tweet-typer/research/symbols.json`
+
+---
+
+## Aesthetic Rationale
+
+The target aesthetic is **sci-fi / techwear / industrial-micrographic** — specifically the visual
+language of Ghost-in-the-Shell / 攻殻機動隊: tight geometric constructs, CJK typographic brackets,
+half-width katakana terminal readouts, monochrome block-fills, data-label arrows, and hardware
+schematic marks. The exemplar the user gave is the Japanese corner bracket 「 」.
+
+This is emphatically NOT emoji — the browser should feel like a tactile glyph palette, not a
+reaction picker. Every symbol selected must pass the "would this appear in a data-HUD overlay
+or a printed PCB silkscreen?" test.
+
+---
+
+## Category Structure
+
+Eight categories were chosen. The rationale for each is below.
+
+| # | Category key | Display name | Core feel |
+|---|---|---|---|
+| 1 | `cjk-brackets` | CJK Brackets & Punctuation | The user's exemplar; Japanese/CJK typographic enclosure marks |
+| 2 | `halfwidth-kata` | Half-Width Katakana | Terminal-readout ｶﾀｶﾅ; the scifi-text aesthetic |
+| 3 | `box-drawing` | Box Drawing & Block Elements | Grid lines, scanline fill, matrix structures |
+| 4 | `geometric` | Geometric Shapes | Hard-edged polygons, triangles, diamonds |
+| 5 | `technical` | Technical & APL Symbols | Engineering marks, keyboard glyphs, APL operators |
+| 6 | `arrows` | Arrows & Flow | Directional data-flow indicators |
+| 7 | `warning-status` | Warning & Status Marks | Hazard, power, radio, industrial symbols |
+| 8 | `math-logic` | Math / Logic Operators | Operator notation that reads as machine-language |
+
+---
+
+## Source Unicode Blocks
+
+| Block name | Range | Notes |
+|---|---|---|
+| CJK Symbols and Punctuation | U+3000–U+303F | All brackets, iteration marks |
+| Halfwidth and Fullwidth Forms | U+FF00–U+FFEF | Halfwidth katakana U+FF61–U+FF9F |
+| Box Drawing | U+2500–U+257F | All 128 assigned |
+| Block Elements | U+2580–U+259F | All 32 assigned |
+| Geometric Shapes | U+25A0–U+25FF | 96 assigned |
+| Geometric Shapes Extended | U+1F780–U+1F7FF | 103 assigned; SMP — tofu risk |
+| Miscellaneous Technical | U+2300–U+23FF | APL symbols, keyboard marks, engineering |
+| Arrows | U+2190–U+21FF | 112 assigned |
+| Supplemental Arrows-A | U+27F0–U+27FF | 16 long/multi arrows |
+| Supplemental Arrows-B | U+2900–U+297F | 128 curved/harpoon arrows |
+| Miscellaneous Symbols | U+2600–U+26FF | Warning, hazard, power |
+| Dingbats | U+2700–U+27BF | Stars, crosses, arrows |
+| Mathematical Operators | U+2200–U+22FF | Logic/set notation |
+
+---
+
+## Category 1 — CJK Brackets & Punctuation (U+3000–U+303F)
+
+These appear in Japanese scifi typography as structural enclosure marks.
+
+| Char | Codepoint | Official Unicode Name |
+|------|-----------|----------------------|
+| 　 | U+3000 | IDEOGRAPHIC SPACE |
+| 、 | U+3001 | IDEOGRAPHIC COMMA |
+| 。 | U+3002 | IDEOGRAPHIC FULL STOP |
+| 〃 | U+3003 | DITTO MARK |
+| 〄 | U+3004 | JAPANESE INDUSTRIAL STANDARD SYMBOL |
+| 々 | U+3005 | IDEOGRAPHIC ITERATION MARK |
+| 〆 | U+3006 | IDEOGRAPHIC CLOSING MARK |
+| 〇 | U+3007 | IDEOGRAPHIC NUMBER ZERO |
+| 〈 | U+3008 | LEFT ANGLE BRACKET |
+| 〉 | U+3009 | RIGHT ANGLE BRACKET |
+| 《 | U+300A | LEFT DOUBLE ANGLE BRACKET |
+| 》 | U+300B | RIGHT DOUBLE ANGLE BRACKET |
+| 「 | U+300C | LEFT CORNER BRACKET |
+| 」 | U+300D | RIGHT CORNER BRACKET |
+| 『 | U+300E | LEFT WHITE CORNER BRACKET |
+| 』 | U+300F | RIGHT WHITE CORNER BRACKET |
+| 【 | U+3010 | LEFT BLACK LENTICULAR BRACKET |
+| 】 | U+3011 | RIGHT BLACK LENTICULAR BRACKET |
+| 〒 | U+3012 | POSTAL MARK |
+| 〓 | U+3013 | GETA MARK |
+| 〔 | U+3014 | LEFT TORTOISE SHELL BRACKET |
+| 〕 | U+3015 | RIGHT TORTOISE SHELL BRACKET |
+| 〖 | U+3016 | LEFT WHITE LENTICULAR BRACKET |
+| 〗 | U+3017 | RIGHT WHITE LENTICULAR BRACKET |
+| 〘 | U+3018 | LEFT WHITE TORTOISE SHELL BRACKET |
+| 〙 | U+3019 | RIGHT WHITE TORTOISE SHELL BRACKET |
+| 〚 | U+301A | LEFT WHITE SQUARE BRACKET |
+| 〛 | U+301B | RIGHT WHITE SQUARE BRACKET |
+| 〜 | U+301C | WAVE DASH |
+| 〝 | U+301D | REVERSED DOUBLE PRIME QUOTATION MARK |
+| 〞 | U+301E | DOUBLE PRIME QUOTATION MARK |
+| 〟 | U+301F | LOW DOUBLE PRIME QUOTATION MARK |
+| 〠 | U+3020 | POSTAL MARK FACE |
+| 〰 | U+3030 | WAVY DASH |
+| 〽 | U+303D | PART ALTERNATION MARK |
+
+**Count: 35**
+
+---
+
+## Category 2 — Half-Width Katakana (U+FF61–U+FF9F)
+
+The narrow-width katakana that appear in retro terminals and ASCII-art HUDs. All are assigned
+and have solid font coverage in CJK-capable fonts (Noto Sans CJK, etc.). They look thin and
+machine-like compared to their fullwidth counterparts.
+
+| Char | Codepoint | Official Unicode Name |
+|------|-----------|----------------------|
+| ｡ | U+FF61 | HALFWIDTH IDEOGRAPHIC FULL STOP |
+| ｢ | U+FF62 | HALFWIDTH LEFT CORNER BRACKET |
+| ｣ | U+FF63 | HALFWIDTH RIGHT CORNER BRACKET |
+| ､ | U+FF64 | HALFWIDTH IDEOGRAPHIC COMMA |
+| ･ | U+FF65 | HALFWIDTH KATAKANA MIDDLE DOT |
+| ｦ | U+FF66 | HALFWIDTH KATAKANA LETTER WO |
+| ｧ | U+FF67 | HALFWIDTH KATAKANA LETTER SMALL A |
+| ｨ | U+FF68 | HALFWIDTH KATAKANA LETTER SMALL I |
+| ｩ | U+FF69 | HALFWIDTH KATAKANA LETTER SMALL U |
+| ｪ | U+FF6A | HALFWIDTH KATAKANA LETTER SMALL E |
+| ｫ | U+FF6B | HALFWIDTH KATAKANA LETTER SMALL O |
+| ｬ | U+FF6C | HALFWIDTH KATAKANA LETTER SMALL YA |
+| ｭ | U+FF6D | HALFWIDTH KATAKANA LETTER SMALL YU |
+| ｮ | U+FF6E | HALFWIDTH KATAKANA LETTER SMALL YO |
+| ｯ | U+FF6F | HALFWIDTH KATAKANA LETTER SMALL TU |
+| ｰ | U+FF70 | HALFWIDTH KATAKANA-HIRAGANA PROLONGED SOUND MARK |
+| ｱ | U+FF71 | HALFWIDTH KATAKANA LETTER A |
+| ｲ | U+FF72 | HALFWIDTH KATAKANA LETTER I |
+| ｳ | U+FF73 | HALFWIDTH KATAKANA LETTER U |
+| ｴ | U+FF74 | HALFWIDTH KATAKANA LETTER E |
+| ｵ | U+FF75 | HALFWIDTH KATAKANA LETTER O |
+| ｶ | U+FF76 | HALFWIDTH KATAKANA LETTER KA |
+| ｷ | U+FF77 | HALFWIDTH KATAKANA LETTER KI |
+| ｸ | U+FF78 | HALFWIDTH KATAKANA LETTER KU |
+| ｹ | U+FF79 | HALFWIDTH KATAKANA LETTER KE |
+| ｺ | U+FF7A | HALFWIDTH KATAKANA LETTER KO |
+| ｻ | U+FF7B | HALFWIDTH KATAKANA LETTER SA |
+| ｼ | U+FF7C | HALFWIDTH KATAKANA LETTER SI |
+| ｽ | U+FF7D | HALFWIDTH KATAKANA LETTER SU |
+| ｾ | U+FF7E | HALFWIDTH KATAKANA LETTER SE |
+| ｿ | U+FF7F | HALFWIDTH KATAKANA LETTER SO |
+| ﾀ | U+FF80 | HALFWIDTH KATAKANA LETTER TA |
+| ﾁ | U+FF81 | HALFWIDTH KATAKANA LETTER TI |
+| ﾂ | U+FF82 | HALFWIDTH KATAKANA LETTER TU |
+| ﾃ | U+FF83 | HALFWIDTH KATAKANA LETTER TE |
+| ﾄ | U+FF84 | HALFWIDTH KATAKANA LETTER TO |
+| ﾅ | U+FF85 | HALFWIDTH KATAKANA LETTER NA |
+| ﾆ | U+FF86 | HALFWIDTH KATAKANA LETTER NI |
+| ﾇ | U+FF87 | HALFWIDTH KATAKANA LETTER NU |
+| ﾈ | U+FF88 | HALFWIDTH KATAKANA LETTER NE |
+| ﾉ | U+FF89 | HALFWIDTH KATAKANA LETTER NO |
+| ﾊ | U+FF8A | HALFWIDTH KATAKANA LETTER HA |
+| ﾋ | U+FF8B | HALFWIDTH KATAKANA LETTER HI |
+| ﾌ | U+FF8C | HALFWIDTH KATAKANA LETTER HU |
+| ﾍ | U+FF8D | HALFWIDTH KATAKANA LETTER HE |
+| ﾎ | U+FF8E | HALFWIDTH KATAKANA LETTER HO |
+| ﾏ | U+FF8F | HALFWIDTH KATAKANA LETTER MA |
+| ﾐ | U+FF90 | HALFWIDTH KATAKANA LETTER MI |
+| ﾑ | U+FF91 | HALFWIDTH KATAKANA LETTER MU |
+| ﾒ | U+FF92 | HALFWIDTH KATAKANA LETTER ME |
+| ﾓ | U+FF93 | HALFWIDTH KATAKANA LETTER MO |
+| ﾔ | U+FF94 | HALFWIDTH KATAKANA LETTER YA |
+| ﾕ | U+FF95 | HALFWIDTH KATAKANA LETTER YU |
+| ﾖ | U+FF96 | HALFWIDTH KATAKANA LETTER YO |
+| ﾗ | U+FF97 | HALFWIDTH KATAKANA LETTER RA |
+| ﾘ | U+FF98 | HALFWIDTH KATAKANA LETTER RI |
+| ﾙ | U+FF99 | HALFWIDTH KATAKANA LETTER RU |
+| ﾚ | U+FF9A | HALFWIDTH KATAKANA LETTER RE |
+| ﾛ | U+FF9B | HALFWIDTH KATAKANA LETTER RO |
+| ﾜ | U+FF9C | HALFWIDTH KATAKANA LETTER WA |
+| ﾝ | U+FF9D | HALFWIDTH KATAKANA LETTER N |
+| ﾞ | U+FF9E | HALFWIDTH KATAKANA VOICED SOUND MARK |
+| ﾟ | U+FF9F | HALFWIDTH KATAKANA SEMI-VOICED SOUND MARK |
+
+**Count: 63**
+
+**Rendering note:** U+FF9E and U+FF9F are combining/spacing marks. They do not modify a base
+character when used standalone in HTML, but function as visible glyphs (a small circle / dot).
+They are single BMP codepoints (not surrogate pairs); `twitter-text` counts each as 1 weighted
+character.
+
+---
+
+## Category 3 — Box Drawing & Block Elements (U+2500–U+259F)
+
+### Box Drawing (U+2500–U+257F) — curated selection
+
+The full block has 128 characters. The curated set below picks the structurally useful
+non-redundant subset.
+
+| Char | Codepoint | Official Unicode Name |
+|------|-----------|----------------------|
+| ─ | U+2500 | BOX DRAWINGS LIGHT HORIZONTAL |
+| ━ | U+2501 | BOX DRAWINGS HEAVY HORIZONTAL |
+| │ | U+2502 | BOX DRAWINGS LIGHT VERTICAL |
+| ┃ | U+2503 | BOX DRAWINGS HEAVY VERTICAL |
+| ┄ | U+2504 | BOX DRAWINGS LIGHT TRIPLE DASH HORIZONTAL |
+| ┅ | U+2505 | BOX DRAWINGS HEAVY TRIPLE DASH HORIZONTAL |
+| ┆ | U+2506 | BOX DRAWINGS LIGHT TRIPLE DASH VERTICAL |
+| ┇ | U+2507 | BOX DRAWINGS HEAVY TRIPLE DASH VERTICAL |
+| ┈ | U+2508 | BOX DRAWINGS LIGHT QUADRUPLE DASH HORIZONTAL |
+| ┉ | U+2509 | BOX DRAWINGS HEAVY QUADRUPLE DASH HORIZONTAL |
+| ┊ | U+250A | BOX DRAWINGS LIGHT QUADRUPLE DASH VERTICAL |
+| ┋ | U+250B | BOX DRAWINGS HEAVY QUADRUPLE DASH VERTICAL |
+| ┌ | U+250C | BOX DRAWINGS LIGHT DOWN AND RIGHT |
+| ┍ | U+250D | BOX DRAWINGS DOWN LIGHT AND RIGHT HEAVY |
+| ┎ | U+250E | BOX DRAWINGS DOWN HEAVY AND RIGHT LIGHT |
+| ┏ | U+250F | BOX DRAWINGS HEAVY DOWN AND RIGHT |
+| ┐ | U+2510 | BOX DRAWINGS LIGHT DOWN AND LEFT |
+| ┑ | U+2511 | BOX DRAWINGS DOWN LIGHT AND LEFT HEAVY |
+| ┒ | U+2512 | BOX DRAWINGS DOWN HEAVY AND LEFT LIGHT |
+| ┓ | U+2513 | BOX DRAWINGS HEAVY DOWN AND LEFT |
+| └ | U+2514 | BOX DRAWINGS LIGHT UP AND RIGHT |
+| ┘ | U+2518 | BOX DRAWINGS LIGHT UP AND LEFT |
+| ┗ | U+2517 | BOX DRAWINGS HEAVY UP AND RIGHT |
+| ┛ | U+251B | BOX DRAWINGS HEAVY UP AND LEFT |
+| ├ | U+251C | BOX DRAWINGS LIGHT VERTICAL AND RIGHT |
+| ┤ | U+2524 | BOX DRAWINGS LIGHT VERTICAL AND LEFT |
+| ┬ | U+252C | BOX DRAWINGS LIGHT DOWN AND HORIZONTAL |
+| ┴ | U+2534 | BOX DRAWINGS LIGHT UP AND HORIZONTAL |
+| ┼ | U+253C | BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL |
+| ┣ | U+2523 | BOX DRAWINGS HEAVY VERTICAL AND RIGHT |
+| ┫ | U+252B | BOX DRAWINGS HEAVY VERTICAL AND LEFT |
+| ┳ | U+2533 | BOX DRAWINGS HEAVY DOWN AND HORIZONTAL |
+| ┻ | U+253B | BOX DRAWINGS HEAVY UP AND HORIZONTAL |
+| ╋ | U+254B | BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL |
+| ╌ | U+254C | BOX DRAWINGS LIGHT DOUBLE DASH HORIZONTAL |
+| ╍ | U+254D | BOX DRAWINGS HEAVY DOUBLE DASH HORIZONTAL |
+| ╎ | U+254E | BOX DRAWINGS LIGHT DOUBLE DASH VERTICAL |
+| ╏ | U+254F | BOX DRAWINGS HEAVY DOUBLE DASH VERTICAL |
+| ═ | U+2550 | BOX DRAWINGS DOUBLE HORIZONTAL |
+| ║ | U+2551 | BOX DRAWINGS DOUBLE VERTICAL |
+| ╔ | U+2554 | BOX DRAWINGS DOUBLE DOWN AND RIGHT |
+| ╗ | U+2557 | BOX DRAWINGS DOUBLE DOWN AND LEFT |
+| ╚ | U+255A | BOX DRAWINGS DOUBLE UP AND RIGHT |
+| ╝ | U+255D | BOX DRAWINGS DOUBLE UP AND LEFT |
+| ╠ | U+2560 | BOX DRAWINGS DOUBLE VERTICAL AND RIGHT |
+| ╣ | U+2563 | BOX DRAWINGS DOUBLE VERTICAL AND LEFT |
+| ╦ | U+2566 | BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL |
+| ╩ | U+2569 | BOX DRAWINGS DOUBLE UP AND HORIZONTAL |
+| ╬ | U+256C | BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL |
+| ╭ | U+256D | BOX DRAWINGS LIGHT ARC DOWN AND RIGHT |
+| ╮ | U+256E | BOX DRAWINGS LIGHT ARC DOWN AND LEFT |
+| ╯ | U+256F | BOX DRAWINGS LIGHT ARC UP AND LEFT |
+| ╰ | U+2570 | BOX DRAWINGS LIGHT ARC UP AND RIGHT |
+| ╱ | U+2571 | BOX DRAWINGS LIGHT DIAGONAL UPPER RIGHT TO LOWER LEFT |
+| ╲ | U+2572 | BOX DRAWINGS LIGHT DIAGONAL UPPER LEFT TO LOWER RIGHT |
+| ╳ | U+2573 | BOX DRAWINGS LIGHT DIAGONAL CROSS |
+
+**Box Drawing count: 55**
+
+### Block Elements (U+2580–U+259F) — full block
+
+| Char | Codepoint | Official Unicode Name |
+|------|-----------|----------------------|
+| ▀ | U+2580 | UPPER HALF BLOCK |
+| ▁ | U+2581 | LOWER ONE EIGHTH BLOCK |
+| ▂ | U+2582 | LOWER ONE QUARTER BLOCK |
+| ▃ | U+2583 | LOWER THREE EIGHTHS BLOCK |
+| ▄ | U+2584 | LOWER HALF BLOCK |
+| ▅ | U+2585 | LOWER FIVE EIGHTHS BLOCK |
+| ▆ | U+2586 | LOWER THREE QUARTERS BLOCK |
+| ▇ | U+2587 | LOWER SEVEN EIGHTHS BLOCK |
+| █ | U+2588 | FULL BLOCK |
+| ▉ | U+2589 | LEFT SEVEN EIGHTHS BLOCK |
+| ▊ | U+258A | LEFT THREE QUARTERS BLOCK |
+| ▋ | U+258B | LEFT FIVE EIGHTHS BLOCK |
+| ▌ | U+258C | LEFT HALF BLOCK |
+| ▍ | U+258D | LEFT THREE EIGHTHS BLOCK |
+| ▎ | U+258E | LEFT ONE QUARTER BLOCK |
+| ▏ | U+258F | LEFT ONE EIGHTH BLOCK |
+| ▐ | U+2590 | RIGHT HALF BLOCK |
+| ░ | U+2591 | LIGHT SHADE |
+| ▒ | U+2592 | MEDIUM SHADE |
+| ▓ | U+2593 | DARK SHADE |
+| ▔ | U+2594 | UPPER ONE EIGHTH BLOCK |
+| ▕ | U+2595 | RIGHT ONE EIGHTH BLOCK |
+| ▖ | U+2596 | QUADRANT LOWER LEFT |
+| ▗ | U+2597 | QUADRANT LOWER RIGHT |
+| ▘ | U+2598 | QUADRANT UPPER LEFT |
+| ▙ | U+2599 | QUADRANT UPPER LEFT AND LOWER LEFT AND LOWER RIGHT |
+| ▚ | U+259A | QUADRANT UPPER LEFT AND LOWER RIGHT |
+| ▛ | U+259B | QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER LEFT |
+| ▜ | U+259C | QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER RIGHT |
+| ▝ | U+259D | QUADRANT UPPER RIGHT |
+| ▞ | U+259E | QUADRANT UPPER RIGHT AND LOWER LEFT |
+| ▟ | U+259F | QUADRANT UPPER RIGHT AND LOWER LEFT AND LOWER RIGHT |
+
+**Block Elements count: 32**
+
+**Category 3 total: 87**
+
+---
+
+## Category 4 — Geometric Shapes (U+25A0–U+25FF)
+
+Curated for hard-edged, directional, or structurally useful shapes. Decorative quadrant-arc
+composites and simple "white/black circle" duplicates omitted.
+
+| Char | Codepoint | Official Unicode Name |
+|------|-----------|----------------------|
+| ■ | U+25A0 | BLACK SQUARE |
+| □ | U+25A1 | WHITE SQUARE |
+| ▢ | U+25A2 | WHITE SQUARE WITH ROUNDED CORNERS |
+| ▣ | U+25A3 | WHITE SQUARE CONTAINING BLACK SMALL SQUARE |
+| ▤ | U+25A4 | SQUARE WITH HORIZONTAL FILL |
+| ▥ | U+25A5 | SQUARE WITH VERTICAL FILL |
+| ▦ | U+25A6 | SQUARE WITH ORTHOGONAL CROSSHATCH FILL |
+| ▧ | U+25A7 | SQUARE WITH UPPER LEFT TO LOWER RIGHT FILL |
+| ▨ | U+25A8 | SQUARE WITH UPPER RIGHT TO LOWER LEFT FILL |
+| ▩ | U+25A9 | SQUARE WITH DIAGONAL CROSSHATCH FILL |
+| ▪ | U+25AA | BLACK SMALL SQUARE |
+| ▫ | U+25AB | WHITE SMALL SQUARE |
+| ▬ | U+25AC | BLACK RECTANGLE |
+| ▭ | U+25AD | WHITE RECTANGLE |
+| ▮ | U+25AE | BLACK VERTICAL RECTANGLE |
+| ▯ | U+25AF | WHITE VERTICAL RECTANGLE |
+| ▰ | U+25B0 | BLACK PARALLELOGRAM |
+| ▱ | U+25B1 | WHITE PARALLELOGRAM |
+| ▲ | U+25B2 | BLACK UP-POINTING TRIANGLE |
+| △ | U+25B3 | WHITE UP-POINTING TRIANGLE |
+| ▴ | U+25B4 | BLACK UP-POINTING SMALL TRIANGLE |
+| ▵ | U+25B5 | WHITE UP-POINTING SMALL TRIANGLE |
+| ▶ | U+25B6 | BLACK RIGHT-POINTING TRIANGLE |
+| ▷ | U+25B7 | WHITE RIGHT-POINTING TRIANGLE |
+| ▸ | U+25B8 | BLACK RIGHT-POINTING SMALL TRIANGLE |
+| ▹ | U+25B9 | WHITE RIGHT-POINTING SMALL TRIANGLE |
+| ► | U+25BA | BLACK RIGHT-POINTING POINTER |
+| ▻ | U+25BB | WHITE RIGHT-POINTING POINTER |
+| ▼ | U+25BC | BLACK DOWN-POINTING TRIANGLE |
+| ▽ | U+25BD | WHITE DOWN-POINTING TRIANGLE |
+| ▾ | U+25BE | BLACK DOWN-POINTING SMALL TRIANGLE |
+| ▿ | U+25BF | WHITE DOWN-POINTING SMALL TRIANGLE |
+| ◀ | U+25C0 | BLACK LEFT-POINTING TRIANGLE |
+| ◁ | U+25C1 | WHITE LEFT-POINTING TRIANGLE |
+| ◂ | U+25C2 | BLACK LEFT-POINTING SMALL TRIANGLE |
+| ◃ | U+25C3 | WHITE LEFT-POINTING SMALL TRIANGLE |
+| ◄ | U+25C4 | BLACK LEFT-POINTING POINTER |
+| ◅ | U+25C5 | WHITE LEFT-POINTING POINTER |
+| ◆ | U+25C6 | BLACK DIAMOND |
+| ◇ | U+25C7 | WHITE DIAMOND |
+| ◈ | U+25C8 | WHITE DIAMOND CONTAINING BLACK SMALL DIAMOND |
+| ◉ | U+25C9 | FISHEYE |
+| ◊ | U+25CA | LOZENGE |
+| ○ | U+25CB | WHITE CIRCLE |
+| ◌ | U+25CC | DOTTED CIRCLE |
+| ◍ | U+25CD | CIRCLE WITH VERTICAL FILL |
+| ◎ | U+25CE | BULLSEYE |
+| ● | U+25CF | BLACK CIRCLE |
+| ◐ | U+25D0 | CIRCLE WITH LEFT HALF BLACK |
+| ◑ | U+25D1 | CIRCLE WITH RIGHT HALF BLACK |
+| ◒ | U+25D2 | CIRCLE WITH LOWER HALF BLACK |
+| ◓ | U+25D3 | CIRCLE WITH UPPER HALF BLACK |
+| ◖ | U+25D6 | LEFT HALF BLACK CIRCLE |
+| ◗ | U+25D7 | RIGHT HALF BLACK CIRCLE |
+| ◢ | U+25E2 | BLACK LOWER RIGHT TRIANGLE |
+| ◣ | U+25E3 | BLACK LOWER LEFT TRIANGLE |
+| ◤ | U+25E4 | BLACK UPPER LEFT TRIANGLE |
+| ◥ | U+25E5 | BLACK UPPER RIGHT TRIANGLE |
+| ◦ | U+25E6 | WHITE BULLET |
+| ◧ | U+25E7 | SQUARE WITH LEFT HALF BLACK |
+| ◨ | U+25E8 | SQUARE WITH RIGHT HALF BLACK |
+| ◩ | U+25E9 | SQUARE WITH UPPER LEFT DIAGONAL HALF BLACK |
+| ◪ | U+25EA | SQUARE WITH LOWER RIGHT DIAGONAL HALF BLACK |
+| ◫ | U+25EB | WHITE SQUARE WITH VERTICAL BISECTING LINE |
+| ◬ | U+25EC | WHITE UP-POINTING TRIANGLE WITH DOT |
+| ◭ | U+25ED | UP-POINTING TRIANGLE WITH LEFT HALF BLACK |
+| ◮ | U+25EE | UP-POINTING TRIANGLE WITH RIGHT HALF BLACK |
+| ◯ | U+25EF | LARGE CIRCLE |
+| ◰ | U+25F0 | WHITE SQUARE WITH UPPER LEFT QUADRANT |
+| ◱ | U+25F1 | WHITE SQUARE WITH LOWER LEFT QUADRANT |
+| ◲ | U+25F2 | WHITE SQUARE WITH LOWER RIGHT QUADRANT |
+| ◳ | U+25F3 | WHITE SQUARE WITH UPPER RIGHT QUADRANT |
+| ◴ | U+25F4 | WHITE CIRCLE WITH UPPER LEFT QUADRANT |
+| ◵ | U+25F5 | WHITE CIRCLE WITH LOWER LEFT QUADRANT |
+| ◶ | U+25F6 | WHITE CIRCLE WITH LOWER RIGHT QUADRANT |
+| ◷ | U+25F7 | WHITE CIRCLE WITH UPPER RIGHT QUADRANT |
+| ◸ | U+25F8 | UPPER LEFT TRIANGLE |
+| ◹ | U+25F9 | UPPER RIGHT TRIANGLE |
+| ◺ | U+25FA | LOWER LEFT TRIANGLE |
+| ◻ | U+25FB | WHITE MEDIUM SQUARE |
+| ◼ | U+25FC | BLACK MEDIUM SQUARE |
+| ◽ | U+25FD | WHITE MEDIUM SMALL SQUARE |
+| ◾ | U+25FE | BLACK MEDIUM SMALL SQUARE |
+| ◿ | U+25FF | LOWER RIGHT TRIANGLE |
+
+**Count: 84**
+
+---
+
+## Category 5 — Technical & APL Symbols (U+2300–U+23FF)
+
+High-value picks from the Miscellaneous Technical block. APL operators are included because
+they read as unrecognizable machine-language glyphs — perfectly on-aesthetic.
+
+| Char | Codepoint | Official Unicode Name |
+|------|-----------|----------------------|
+| ⌀ | U+2300 | DIAMETER SIGN |
+| ⌁ | U+2301 | ELECTRIC ARROW |
+| ⌂ | U+2302 | HOUSE |
+| ⌃ | U+2303 | UP ARROWHEAD |
+| ⌄ | U+2304 | DOWN ARROWHEAD |
+| ⌇ | U+2307 | WAVY LINE |
+| ⌈ | U+2308 | LEFT CEILING |
+| ⌉ | U+2309 | RIGHT CEILING |
+| ⌊ | U+230A | LEFT FLOOR |
+| ⌋ | U+230B | RIGHT FLOOR |
+| ⌐ | U+2310 | REVERSED NOT SIGN |
+| ⌑ | U+2311 | SQUARE LOZENGE |
+| ⌒ | U+2312 | ARC |
+| ⌕ | U+2315 | TELEPHONE RECORDER |
+| ⌖ | U+2316 | POSITION INDICATOR |
+| ⌘ | U+2318 | PLACE OF INTEREST SIGN |
+| ⌜ | U+231C | TOP LEFT CORNER |
+| ⌝ | U+231D | TOP RIGHT CORNER |
+| ⌞ | U+231E | BOTTOM LEFT CORNER |
+| ⌟ | U+231F | BOTTOM RIGHT CORNER |
+| ⌥ | U+2325 | OPTION KEY |
+| ⌦ | U+2326 | ERASE TO THE RIGHT |
+| ⌧ | U+2327 | X IN A RECTANGLE BOX |
+| ⌨ | U+2328 | KEYBOARD |
+| ⌫ | U+232B | ERASE TO THE LEFT |
+| ⍀ | U+2340 | APL FUNCTIONAL SYMBOL BACKSLASH BAR |
+| ⍁ | U+2341 | APL FUNCTIONAL SYMBOL QUAD SLASH |
+| ⍂ | U+2342 | APL FUNCTIONAL SYMBOL QUAD BACKSLASH |
+| ⍇ | U+2347 | APL FUNCTIONAL SYMBOL QUAD LEFTWARDS ARROW |
+| ⍈ | U+2348 | APL FUNCTIONAL SYMBOL QUAD RIGHTWARDS ARROW |
+| ⍉ | U+2349 | APL FUNCTIONAL SYMBOL CIRCLE BACKSLASH |
+| ⍊ | U+234A | APL FUNCTIONAL SYMBOL DOWN TACK UNDERBAR |
+| ⍋ | U+234B | APL FUNCTIONAL SYMBOL DELTA STILE |
+| ⍌ | U+234C | APL FUNCTIONAL SYMBOL QUAD DOWN CARET |
+| ⍍ | U+234D | APL FUNCTIONAL SYMBOL QUAD DELTA |
+| ⍎ | U+234E | APL FUNCTIONAL SYMBOL DOWN TACK JOT |
+| ⍏ | U+234F | APL FUNCTIONAL SYMBOL UPWARDS VANE |
+| ⍐ | U+2350 | APL FUNCTIONAL SYMBOL QUAD UPWARDS ARROW |
+| ⍑ | U+2351 | APL FUNCTIONAL SYMBOL UP TACK OVERBAR |
+| ⍒ | U+2352 | APL FUNCTIONAL SYMBOL DEL STILE |
+| ⍓ | U+2353 | APL FUNCTIONAL SYMBOL QUAD UP CARET |
+| ⍔ | U+2354 | APL FUNCTIONAL SYMBOL QUAD DEL |
+| ⍕ | U+2355 | APL FUNCTIONAL SYMBOL UP TACK JOT |
+| ⍖ | U+2356 | APL FUNCTIONAL SYMBOL DOWNWARDS VANE |
+| ⍗ | U+2357 | APL FUNCTIONAL SYMBOL QUAD DOWNWARDS ARROW |
+| ⍘ | U+2358 | APL FUNCTIONAL SYMBOL QUOTE UNDERBAR |
+| ⍙ | U+2359 | APL FUNCTIONAL SYMBOL DELTA UNDERBAR |
+| ⍚ | U+235A | APL FUNCTIONAL SYMBOL JOT UNDERBAR |
+| ⍛ | U+235B | APL FUNCTIONAL SYMBOL CIRCLE UNDERBAR |
+| ⍜ | U+235C | APL FUNCTIONAL SYMBOL UP SHOE JOT |
+| ⍝ | U+235D | APL FUNCTIONAL SYMBOL QUOTE QUAD |
+| ⍞ | U+235E | APL FUNCTIONAL SYMBOL CIRCLE STAR |
+| ⍪ | U+236A | APL FUNCTIONAL SYMBOL COMMA BAR |
+| ⍫ | U+236B | APL FUNCTIONAL SYMBOL DEL TILDE |
+| ⍬ | U+236C | APL FUNCTIONAL SYMBOL ZILDE |
+| ⍭ | U+236D | APL FUNCTIONAL SYMBOL STILE TILDE |
+| ⍮ | U+236E | APL FUNCTIONAL SYMBOL SEMICOLON UNDERBAR |
+| ⍯ | U+236F | APL FUNCTIONAL SYMBOL QUAD NOT EQUAL |
+| ⍰ | U+2370 | APL FUNCTIONAL SYMBOL QUAD QUESTION |
+| ⍸ | U+2378 | APL FUNCTIONAL SYMBOL IOTA UNDERBAR |
+| ⍹ | U+2379 | APL FUNCTIONAL SYMBOL OMEGA UNDERBAR |
+| ⍺ | U+237A | APL FUNCTIONAL SYMBOL ALPHA |
+| ⎁ | U+2381 | CONTINUOUS UNDERLINE SYMBOL |
+| ⎆ | U+2386 | ENTER SYMBOL |
+| ⎇ | U+2387 | ALTERNATIVE KEY SYMBOL |
+| ⎈ | U+2388 | HELM SYMBOL |
+| ⎉ | U+2389 | CIRCLED HORIZONTAL BAR WITH NOTCH |
+| ⎊ | U+238A | CIRCLED TRIANGLE DOWN |
+| ⎋ | U+238B | BROKEN CIRCLE WITH NORTHWEST ARROW |
+| ⎌ | U+238C | UNDO SYMBOL |
+| ⎍ | U+238D | MONOSTABLE SYMBOL |
+| ⎎ | U+238E | HYSTERESIS SYMBOL |
+| ⎎ | U+238F | OPEN-CIRCUIT-OUTPUT H-TYPE SYMBOL |
+| ⎐ | U+2390 | OPEN-CIRCUIT-OUTPUT L-TYPE SYMBOL |
+| ⎑ | U+2391 | PASSIVE-PULL-DOWN-OUTPUT SYMBOL |
+| ⎒ | U+2392 | PASSIVE-PULL-UP-OUTPUT SYMBOL |
+| ⎓ | U+2393 | DIRECT CURRENT SYMBOL FORM TWO |
+| ⎔ | U+2394 | SOFTWARE-FUNCTION SYMBOL |
+| ⎕ | U+2395 | APL FUNCTIONAL SYMBOL QUAD |
+| ⎖ | U+2396 | DECIMAL SEPARATOR KEY SYMBOL |
+| ⎗ | U+2397 | PREVIOUS PAGE |
+| ⎘ | U+2398 | NEXT PAGE |
+| ⎙ | U+2399 | PRINT SCREEN SYMBOL |
+| ⎚ | U+239A | CLEAR SCREEN SYMBOL |
+| ⎡ | U+23A1 | LEFT SQUARE BRACKET UPPER CORNER |
+| ⎢ | U+23A2 | LEFT SQUARE BRACKET EXTENSION |
+| ⎣ | U+23A3 | LEFT SQUARE BRACKET LOWER CORNER |
+| ⎤ | U+23A4 | RIGHT SQUARE BRACKET UPPER CORNER |
+| ⎥ | U+23A5 | RIGHT SQUARE BRACKET EXTENSION |
+| ⎦ | U+23A6 | RIGHT SQUARE BRACKET LOWER CORNER |
+| ⎺ | U+23BA | HORIZONTAL SCAN LINE-1 |
+| ⎻ | U+23BB | HORIZONTAL SCAN LINE-3 |
+| ⎼ | U+23BC | HORIZONTAL SCAN LINE-7 |
+| ⎽ | U+23BD | HORIZONTAL SCAN LINE-9 |
+| ⏃ | U+23C3 | DENTISTRY SYMBOL LIGHT VERTICAL WITH TRIANGLE |
+| ⏎ | U+23CE | RETURN SYMBOL |
+| ⏏ | U+23CF | EJECT SYMBOL |
+| ⏐ | U+23D0 | VERTICAL LINE EXTENSION |
+| ⏚ | U+23DA | EARTH GROUND |
+| ⏛ | U+23DB | FUSE |
+| ⏣ | U+23E3 | BENZENE RING WITH CIRCLE |
+| ⏤ | U+23E4 | STRAIGHTNESS |
+| ⏥ | U+23E5 | FLATNESS |
+| ⏦ | U+23E6 | AC CURRENT |
+| ⏧ | U+23E7 | ELECTRICAL INTERSECTION |
+| ⏨ | U+23E8 | DECIMAL EXPONENT SYMBOL |
+| ⏩ | U+23E9 | BLACK RIGHT-POINTING DOUBLE TRIANGLE |
+| ⏪ | U+23EA | BLACK LEFT-POINTING DOUBLE TRIANGLE |
+| ⏫ | U+23EB | BLACK UP-POINTING DOUBLE TRIANGLE |
+| ⏬ | U+23EC | BLACK DOWN-POINTING DOUBLE TRIANGLE |
+| ⏭ | U+23ED | BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR |
+| ⏮ | U+23EE | BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR |
+| ⏴ | U+23F4 | BLACK MEDIUM LEFT-POINTING TRIANGLE |
+| ⏵ | U+23F5 | BLACK MEDIUM RIGHT-POINTING TRIANGLE |
+| ⏶ | U+23F6 | BLACK MEDIUM UP-POINTING TRIANGLE |
+| ⏷ | U+23F7 | BLACK MEDIUM DOWN-POINTING TRIANGLE |
+| ⏸ | U+23F8 | DOUBLE VERTICAL BAR |
+| ⏹ | U+23F9 | BLACK SQUARE FOR STOP |
+| ⏺ | U+23FA | BLACK CIRCLE FOR RECORD |
+| ⏻ | U+23FB | POWER SYMBOL |
+| ⏼ | U+23FC | POWER ON-OFF SYMBOL |
+| ⏽ | U+23FD | POWER ON SYMBOL |
+| ⏾ | U+23FE | POWER SLEEP SYMBOL |
+| ⏿ | U+23FF | OBSERVER EYE SYMBOL |
+
+**Count: 122**
+
+**Rendering notes for Technical:**
+- APL symbols (U+2336–U+237A) have variable font support. Noto Sans Symbols 2 covers most.
+  Older system fonts may show tofu.
+- Power symbols U+23FB–U+23FE were added in Unicode 9.0 (2016) and have patchy coverage in
+  fonts shipped before 2017.
+- U+23E9–U+23EE are commonly used as emoji (media transport controls); they may render with
+  emoji presentation in some browsers without VS15 (U+FE0E) text variation selector.
+
+---
+
+## Category 6 — Arrows & Flow (U+2190–U+21FF, U+27F0–U+27FF)
+
+Curated for directional specificity — curved, barbed, and long-form arrows that read as
+data-flow indicators. Pairs/symmetric forms included; redundant weight-variants trimmed.
+
+| Char | Codepoint | Official Unicode Name |
+|------|-----------|----------------------|
+| ← | U+2190 | LEFTWARDS ARROW |
+| ↑ | U+2191 | UPWARDS ARROW |
+| → | U+2192 | RIGHTWARDS ARROW |
+| ↓ | U+2193 | DOWNWARDS ARROW |
+| ↔ | U+2194 | LEFT RIGHT ARROW |
+| ↕ | U+2195 | UP DOWN ARROW |
+| ↖ | U+2196 | NORTH WEST ARROW |
+| ↗ | U+2197 | NORTH EAST ARROW |
+| ↘ | U+2198 | SOUTH EAST ARROW |
+| ↙ | U+2199 | SOUTH WEST ARROW |
+| ↚ | U+219A | LEFTWARDS ARROW WITH STROKE |
+| ↛ | U+219B | RIGHTWARDS ARROW WITH STROKE |
+| ↜ | U+219C | LEFTWARDS WAVE ARROW |
+| ↝ | U+219D | RIGHTWARDS WAVE ARROW |
+| ↞ | U+219E | LEFTWARDS TWO HEADED ARROW |
+| ↟ | U+219F | UPWARDS TWO HEADED ARROW |
+| ↠ | U+21A0 | RIGHTWARDS TWO HEADED ARROW |
+| ↡ | U+21A1 | DOWNWARDS TWO HEADED ARROW |
+| ↢ | U+21A2 | LEFTWARDS ARROW WITH TAIL |
+| ↣ | U+21A3 | RIGHTWARDS ARROW WITH TAIL |
+| ↤ | U+21A4 | LEFTWARDS ARROW FROM BAR |
+| ↦ | U+21A6 | RIGHTWARDS ARROW FROM BAR |
+| ↩ | U+21A9 | LEFTWARDS ARROW WITH HOOK |
+| ↪ | U+21AA | RIGHTWARDS ARROW WITH HOOK |
+| ↫ | U+21AB | LEFTWARDS ARROW WITH LOOP |
+| ↬ | U+21AC | RIGHTWARDS ARROW WITH LOOP |
+| ↭ | U+21AD | LEFT RIGHT WAVE ARROW |
+| ↯ | U+21AF | DOWNWARDS ZIGZAG ARROW |
+| ↰ | U+21B0 | UPWARDS ARROW WITH TIP LEFTWARDS |
+| ↱ | U+21B1 | UPWARDS ARROW WITH TIP RIGHTWARDS |
+| ↲ | U+21B2 | DOWNWARDS ARROW WITH TIP LEFTWARDS |
+| ↳ | U+21B3 | DOWNWARDS ARROW WITH TIP RIGHTWARDS |
+| ↴ | U+21B4 | RIGHTWARDS ARROW WITH CORNER DOWNWARDS |
+| ↵ | U+21B5 | DOWNWARDS ARROW WITH CORNER LEFTWARDS |
+| ↶ | U+21B6 | ANTICLOCKWISE TOP SEMICIRCLE ARROW |
+| ↷ | U+21B7 | CLOCKWISE TOP SEMICIRCLE ARROW |
+| ↺ | U+21BA | ANTICLOCKWISE OPEN CIRCLE ARROW |
+| ↻ | U+21BB | CLOCKWISE OPEN CIRCLE ARROW |
+| ⇐ | U+21D0 | LEFTWARDS DOUBLE ARROW |
+| ⇑ | U+21D1 | UPWARDS DOUBLE ARROW |
+| ⇒ | U+21D2 | RIGHTWARDS DOUBLE ARROW |
+| ⇓ | U+21D3 | DOWNWARDS DOUBLE ARROW |
+| ⇔ | U+21D4 | LEFT RIGHT DOUBLE ARROW |
+| ⇕ | U+21D5 | UP DOWN DOUBLE ARROW |
+| ⇖ | U+21D6 | NORTH WEST DOUBLE ARROW |
+| ⇗ | U+21D7 | NORTH EAST DOUBLE ARROW |
+| ⇘ | U+21D8 | SOUTH EAST DOUBLE ARROW |
+| ⇙ | U+21D9 | SOUTH WEST DOUBLE ARROW |
+| ⇠ | U+21E0 | LEFTWARDS DASHED ARROW |
+| ⇡ | U+21E1 | UPWARDS DASHED ARROW |
+| ⇢ | U+21E2 | RIGHTWARDS DASHED ARROW |
+| ⇣ | U+21E3 | DOWNWARDS DASHED ARROW |
+| ⇤ | U+21E4 | LEFTWARDS ARROW TO BAR |
+| ⇥ | U+21E5 | RIGHTWARDS ARROW TO BAR |
+| ⇦ | U+21E6 | LEFTWARDS WHITE ARROW |
+| ⇧ | U+21E7 | UPWARDS WHITE ARROW |
+| ⇨ | U+21E8 | RIGHTWARDS WHITE ARROW |
+| ⇩ | U+21E9 | DOWNWARDS WHITE ARROW |
+| ⟰ | U+27F0 | UPWARDS QUADRUPLE ARROW |
+| ⟱ | U+27F1 | DOWNWARDS QUADRUPLE ARROW |
+| ⟲ | U+27F2 | ANTICLOCKWISE GAPPED CIRCLE ARROW |
+| ⟳ | U+27F3 | CLOCKWISE GAPPED CIRCLE ARROW |
+| ⟵ | U+27F5 | LONG LEFTWARDS ARROW |
+| ⟶ | U+27F6 | LONG RIGHTWARDS ARROW |
+| ⟷ | U+27F7 | LONG LEFT RIGHT ARROW |
+| ⟸ | U+27F8 | LONG LEFTWARDS DOUBLE ARROW |
+| ⟹ | U+27F9 | LONG RIGHTWARDS DOUBLE ARROW |
+| ⟺ | U+27FA | LONG LEFT RIGHT DOUBLE ARROW |
+| ⟿ | U+27FF | LONG RIGHTWARDS SQUIGGLE ARROW |
+
+**Count: 68**
+
+---
+
+## Category 7 — Warning & Status Marks (U+2600–U+26FF, U+2700–U+27BF)
+
+Industrial hazard, power, signal, and status symbols.
+
+| Char | Codepoint | Official Unicode Name |
+|------|-----------|----------------------|
+| ★ | U+2605 | BLACK STAR |
+| ☆ | U+2606 | WHITE STAR |
+| ⚡ | U+26A1 | HIGH VOLTAGE SIGN |
+| ⚠ | U+26A0 | WARNING SIGN |
+| ☢ | U+2622 | RADIOACTIVE SIGN |
+| ☣ | U+2623 | BIOHAZARD SIGN |
+| ☠ | U+2620 | SKULL AND CROSSBONES |
+| ⚙ | U+2699 | GEAR |
+| ⚛ | U+269B | ATOM SYMBOL |
+| ⚲ | U+26B2 | NEUTER |
+| ⚭ | U+26AD | MARRIAGE SYMBOL |
+| ⛬ | U+26EC | HISTORIC SITE |
+| ⛭ | U+26ED | GEAR WITHOUT HUB |
+| ⛮ | U+26EE | GEAR WITH HANDLES |
+| ⛯ | U+26EF | MAP SYMBOL FOR LIGHTHOUSE |
+| ⚽ | U+26BD | SOCCER BALL |
+| ⛔ | U+26D4 | NO ENTRY |
+| ⛽ | U+26FD | FUEL PUMP |
+| ✂ | U+2702 | BLACK SCISSORS |
+| ✆ | U+2706 | TELEPHONE LOCATION SIGN |
+| ✇ | U+2707 | TAPE DRIVE |
+| ✈ | U+2708 | AIRPLANE |
+| ✉ | U+2709 | ENVELOPE |
+| ✊ | U+270A | RAISED FIST |
+| ✋ | U+270B | RAISED HAND |
+| ✌ | U+270C | VICTORY HAND |
+| ✍ | U+270D | WRITING HAND |
+| ✎ | U+270E | LOWER RIGHT PENCIL |
+| ✏ | U+270F | PENCIL |
+| ✐ | U+2710 | UPPER RIGHT PENCIL |
+| ✑ | U+2711 | WHITE NIB |
+| ✒ | U+2712 | BLACK NIB |
+| ✓ | U+2713 | CHECK MARK |
+| ✔ | U+2714 | HEAVY CHECK MARK |
+| ✕ | U+2715 | MULTIPLICATION X |
+| ✖ | U+2716 | HEAVY MULTIPLICATION X |
+| ✗ | U+2717 | BALLOT X |
+| ✘ | U+2718 | HEAVY BALLOT X |
+| ✙ | U+2719 | OUTLINED GREEK CROSS |
+| ✚ | U+271A | HEAVY GREEK CROSS |
+| ✛ | U+271B | OPEN CENTRE CROSS |
+| ✜ | U+271C | HEAVY OPEN CENTRE CROSS |
+| ✦ | U+2726 | BLACK FOUR POINTED STAR |
+| ✧ | U+2727 | WHITE FOUR POINTED STAR |
+| ✩ | U+2729 | STRESS OUTLINED WHITE STAR |
+| ✪ | U+272A | CIRCLED WHITE STAR |
+| ✫ | U+272B | OPEN CENTRE BLACK STAR |
+| ✬ | U+272C | BLACK CENTRE WHITE STAR |
+| ✭ | U+272D | OUTLINED BLACK STAR |
+| ✮ | U+272E | HEAVY OUTLINED BLACK STAR |
+| ✯ | U+272F | PINWHEEL STAR |
+| ✰ | U+2730 | SHADOWED WHITE STAR |
+| ✱ | U+2731 | HEAVY ASTERISK |
+| ✲ | U+2732 | OPEN CENTRE ASTERISK |
+| ✳ | U+2733 | EIGHT SPOKED ASTERISK |
+| ✴ | U+2734 | EIGHT POINTED BLACK STAR |
+| ✵ | U+2735 | EIGHT POINTED PINWHEEL STAR |
+| ✶ | U+2736 | SIX POINTED BLACK STAR |
+| ✷ | U+2737 | EIGHT POINTED RECTILINEAR BLACK STAR |
+| ✸ | U+2738 | HEAVY EIGHT POINTED RECTILINEAR BLACK STAR |
+| ✹ | U+2739 | TWELVE POINTED BLACK STAR |
+| ✺ | U+273A | SIXTEEN POINTED ASTERISK |
+| ✻ | U+273B | TEARDROP-SPOKED ASTERISK |
+| ✼ | U+273C | OPEN CENTRE TEARDROP-SPOKED ASTERISK |
+| ✽ | U+273D | HEAVY TEARDROP-SPOKED ASTERISK |
+| ✾ | U+273E | SIX PETALLED BLACK AND WHITE FLORETTE |
+| ✿ | U+273F | BLACK FLORETTE |
+| ❀ | U+2740 | WHITE FLORETTE |
+| ❁ | U+2741 | EIGHT PETALLED OUTLINED BLACK FLORETTE |
+| ❂ | U+2742 | CIRCLED OPEN CENTRE EIGHT POINTED STAR |
+| ❃ | U+2743 | HEAVY TEARDROP-SPOKED PINWHEEL ASTERISK |
+| ❄ | U+2744 | SNOWFLAKE |
+| ❅ | U+2745 | TIGHT TRIFOLIATE SNOWFLAKE |
+| ❆ | U+2746 | HEAVY CHEVRON SNOWFLAKE |
+| ❇ | U+2747 | SPARKLE |
+| ❈ | U+2748 | HEAVY SPARKLE |
+| ❉ | U+2749 | BALLOON-SPOKED ASTERISK |
+| ❊ | U+274A | EIGHT TEARDROP-SPOKED PROPELLER ASTERISK |
+| ❋ | U+274B | HEAVY EIGHT TEARDROP-SPOKED PROPELLER ASTERISK |
+| ❌ | U+274C | CROSS MARK |
+| ❍ | U+274D | SHADOWED WHITE CIRCLE |
+| ❎ | U+274E | NEGATIVE SQUARED CROSS MARK |
+| ❏ | U+274F | LOWER RIGHT DROP-SHADOWED WHITE SQUARE |
+| ❐ | U+2750 | UPPER RIGHT DROP-SHADOWED WHITE SQUARE |
+| ❑ | U+2751 | LOWER RIGHT SHADOWED WHITE SQUARE |
+| ❒ | U+2752 | UPPER RIGHT SHADOWED WHITE SQUARE |
+| ❖ | U+2756 | BLACK DIAMOND MINUS WHITE X |
+| ❘ | U+2758 | LIGHT VERTICAL BAR |
+| ❙ | U+2759 | MEDIUM VERTICAL BAR |
+| ❚ | U+275A | HEAVY VERTICAL BAR |
+| ➔ | U+2794 | HEAVY WIDE-HEADED RIGHTWARDS ARROW |
+| ➘ | U+2798 | HEAVY SOUTH EAST ARROW |
+| ➙ | U+2799 | HEAVY RIGHTWARDS ARROW |
+| ➚ | U+279A | HEAVY NORTH EAST ARROW |
+| ➛ | U+279B | DRAFTING POINT RIGHTWARDS ARROW |
+| ➜ | U+279C | HEAVY ROUND-TIPPED RIGHTWARDS ARROW |
+| ➝ | U+279D | TRIANGLE-HEADED RIGHTWARDS ARROW |
+| ➞ | U+279E | HEAVY TRIANGLE-HEADED RIGHTWARDS ARROW |
+| ➟ | U+279F | DASHED TRIANGLE-HEADED RIGHTWARDS ARROW |
+| ➠ | U+27A0 | HEAVY DASHED TRIANGLE-HEADED RIGHTWARDS ARROW |
+| ➡ | U+27A1 | BLACK RIGHTWARDS ARROW |
+| ➢ | U+27A2 | THREE-D TOP-LIGHTED RIGHTWARDS ARROWHEAD |
+| ➣ | U+27A3 | THREE-D BOTTOM-LIGHTED RIGHTWARDS ARROWHEAD |
+| ➤ | U+27A4 | BLACK RIGHTWARDS ARROWHEAD |
+| ➥ | U+27A5 | HEAVY BLACK CURVED DOWNWARDS AND RIGHTWARDS ARROW |
+| ➦ | U+27A6 | HEAVY BLACK CURVED UPWARDS AND RIGHTWARDS ARROW |
+| ➧ | U+27A7 | SQUAT BLACK RIGHTWARDS ARROW |
+| ➨ | U+27A8 | HEAVY CONCAVE-POINTED BLACK RIGHTWARDS ARROW |
+| ➩ | U+27A9 | RIGHT-SHADED WHITE RIGHTWARDS ARROW |
+| ➪ | U+27AA | LEFT-SHADED WHITE RIGHTWARDS ARROW |
+| ➫ | U+27AB | BACK-TILTED SHADOWED WHITE RIGHTWARDS ARROW |
+| ➬ | U+27AC | FRONT-TILTED SHADOWED WHITE RIGHTWARDS ARROW |
+| ➭ | U+27AD | HEAVY LOWER RIGHT-SHADOWED WHITE RIGHTWARDS ARROW |
+| ➮ | U+27AE | HEAVY UPPER RIGHT-SHADOWED WHITE RIGHTWARDS ARROW |
+| ➯ | U+27AF | NOTCHED LOWER RIGHT-SHADOWED WHITE RIGHTWARDS ARROW |
+| ➱ | U+27B1 | NOTCHED UPPER RIGHT-SHADOWED WHITE RIGHTWARDS ARROW |
+| ➲ | U+27B2 | CIRCLED HEAVY WHITE RIGHTWARDS ARROW |
+| ➳ | U+27B3 | WHITE-FEATHERED RIGHTWARDS ARROW |
+| ➴ | U+27B4 | BLACK-FEATHERED SOUTH EAST ARROW |
+| ➵ | U+27B5 | BLACK-FEATHERED RIGHTWARDS ARROW |
+| ➶ | U+27B6 | BLACK-FEATHERED NORTH EAST ARROW |
+| ➷ | U+27B7 | HEAVY BLACK-FEATHERED SOUTH EAST ARROW |
+| ➸ | U+27B8 | HEAVY BLACK-FEATHERED RIGHTWARDS ARROW |
+| ➹ | U+27B9 | HEAVY BLACK-FEATHERED NORTH EAST ARROW |
+| ➺ | U+27BA | TEARDROP-BARBED RIGHTWARDS ARROW |
+| ➻ | U+27BB | HEAVY TEARDROP-SHANKED RIGHTWARDS ARROW |
+| ➼ | U+27BC | WEDGE-TAILED RIGHTWARDS ARROW |
+| ➽ | U+27BD | HEAVY WEDGE-TAILED RIGHTWARDS ARROW |
+| ➾ | U+27BE | OPEN-OUTLINED RIGHTWARDS ARROW |
+
+**Count: 127**
+
+**Rendering notes for Warning/Status:**
+- U+26A0–U+26FF many chars are rarely used and have poor coverage in Latin-only fonts.
+  In a browser on Windows/macOS/Linux with Noto Symbols 2 fallback these render correctly.
+- Emoji-overlapping symbols (⚡ U+26A1, ☢ U+2622, ⚠ U+26A0) may render as color emoji;
+  append VS15 (U+FE0E) in the app to force text presentation if needed.
+
+---
+
+## Category 8 — Math / Logic Operators (U+2200–U+22FF, selected)
+
+A curated subset — operators that read as machine/system-logic marks rather than as academic
+math. Full block has 256 characters; this picks the highest-signal ~40.
+
+| Char | Codepoint | Official Unicode Name |
+|------|-----------|----------------------|
+| ∀ | U+2200 | FOR ALL |
+| ∁ | U+2201 | COMPLEMENT |
+| ∂ | U+2202 | PARTIAL DIFFERENTIAL |
+| ∃ | U+2203 | THERE EXISTS |
+| ∄ | U+2204 | THERE DOES NOT EXIST |
+| ∅ | U+2205 | EMPTY SET |
+| ∆ | U+2206 | INCREMENT |
+| ∇ | U+2207 | NABLA |
+| ∈ | U+2208 | ELEMENT OF |
+| ∉ | U+2209 | NOT AN ELEMENT OF |
+| ∊ | U+220A | SMALL ELEMENT OF |
+| ∋ | U+220B | CONTAINS AS MEMBER |
+| ∎ | U+220E | END OF PROOF |
+| ∏ | U+220F | N-ARY PRODUCT |
+| ∑ | U+2211 | N-ARY SUMMATION |
+| − | U+2212 | MINUS SIGN |
+| ∓ | U+2213 | MINUS-OR-PLUS SIGN |
+| ∕ | U+2215 | DIVISION SLASH |
+| ∗ | U+2217 | ASTERISK OPERATOR |
+| ∘ | U+2218 | RING OPERATOR |
+| √ | U+221A | SQUARE ROOT |
+| ∛ | U+221B | CUBE ROOT |
+| ∜ | U+221C | FOURTH ROOT |
+| ∞ | U+221E | INFINITY |
+| ∟ | U+221F | RIGHT ANGLE |
+| ∠ | U+2220 | ANGLE |
+| ∡ | U+2221 | MEASURED ANGLE |
+| ∢ | U+2222 | SPHERICAL ANGLE |
+| ∣ | U+2223 | DIVIDES |
+| ∤ | U+2224 | DOES NOT DIVIDE |
+| ∥ | U+2225 | PARALLEL TO |
+| ∦ | U+2226 | NOT PARALLEL TO |
+| ∧ | U+2227 | LOGICAL AND |
+| ∨ | U+2228 | LOGICAL OR |
+| ∩ | U+2229 | INTERSECTION |
+| ∪ | U+222A | UNION |
+| ∫ | U+222B | INTEGRAL |
+| ∮ | U+222E | CONTOUR INTEGRAL |
+| ∴ | U+2234 | THEREFORE |
+| ∵ | U+2235 | BECAUSE |
+| ≈ | U+2248 | ALMOST EQUAL TO |
+| ≠ | U+2260 | NOT EQUAL TO |
+| ≡ | U+2261 | IDENTICAL TO |
+| ≢ | U+2262 | NOT IDENTICAL TO |
+| ⊂ | U+2282 | SUBSET OF |
+| ⊃ | U+2283 | SUPERSET OF |
+| ⊕ | U+2295 | CIRCLED PLUS |
+| ⊗ | U+2297 | CIRCLED TIMES |
+| ⊘ | U+2298 | CIRCLED DIVISION SLASH |
+| ⊙ | U+2299 | CIRCLED DOT OPERATOR |
+| ⊛ | U+229B | CIRCLED ASTERISK OPERATOR |
+| ⊞ | U+229E | SQUARED PLUS |
+| ⊟ | U+229F | SQUARED MINUS |
+| ⊠ | U+22A0 | SQUARED TIMES |
+| ⊡ | U+22A1 | SQUARED DOT OPERATOR |
+| ⊢ | U+22A2 | RIGHT TACK |
+| ⊣ | U+22A3 | LEFT TACK |
+| ⊤ | U+22A4 | DOWN TACK |
+| ⊥ | U+22A5 | UP TACK |
+| ⊦ | U+22A6 | ASSERTION |
+| ⋮ | U+22EE | VERTICAL ELLIPSIS |
+| ⋯ | U+22EF | MIDLINE HORIZONTAL ELLIPSIS |
+| ⋰ | U+22F0 | UP RIGHT DIAGONAL ELLIPSIS |
+| ⋱ | U+22F1 | DOWN RIGHT DIAGONAL ELLIPSIS |
+
+**Count: 63**
+
+---
+
+## Rendering Caveats
+
+### Tofu / Poor Font Coverage
+
+These categories / specific glyphs have the highest tofu risk in non-CJK environments:
+
+| Risk | Codepoints | Reason |
+|------|-----------|--------|
+| HIGH | U+FF61–U+FF9F (halfwidth katakana) | Requires a CJK-capable font. Missing on many Latin-only system fonts. Noto Sans CJK covers all. |
+| HIGH | U+1F780–U+1F7FF (Geometric Shapes Extended) | SMP block; NOT included in this dataset (see below). |
+| MED | U+2330–U+237A (APL symbols) | Covered by Noto Sans Symbols 2, JuliaMono, GNU Unifont; missing from many system fonts. |
+| MED | U+23FB–U+23FE (power symbols) | Added in Unicode 9.0 (2016); patchy on older font stacks. |
+| MED | U+26xx misc symbols beyond the common subset | Font varies; browser fallback to Noto Symbols resolves most. |
+| LOW | U+2500–U+259F (box/block) | Near-universal support in terminal-capable fonts. |
+| LOW | U+2190–U+21FF (arrows) | Near-universal on all modern system fonts. |
+| LOW | U+3000–U+303F (CJK brackets) | Universal on any East-Asian or Unicode-complete font. |
+
+### Geometric Shapes Extended (U+1F780–U+1F7FF) — NOT included
+
+This SMP block has excellent aesthetic content (bold triangles, crosses, asterisks, stars) but:
+1. All codepoints are above U+FFFF, requiring surrogate pair encoding in UTF-16 contexts.
+2. The `twitter-text` library counts them as 2 weighted characters each (per X's rules for
+   non-BMP codepoints). Ticket 01 findings confirmed X counts codepoints above U+FFFF as 2.
+3. Font coverage is poor outside of Noto Symbols 2 and Segoe UI Symbol.
+
+Decision: SMP geometric symbols are intentionally excluded from the MVP dataset. If the app
+gains a "show high-coverage only" toggle later, they could be conditionally included.
+
+### Emoji Dual-Presentation
+
+Many symbols in U+2600–U+26FF and U+2700–U+27BF have emoji variant selectors. In browser
+contexts these may render as colour emoji by default. The app should normalize display by
+appending U+FE0E (VARIATION SELECTOR-15, text presentation) when inserting symbols that are
+known emoji. The relevant codepoints include: U+2605 ★, U+2606 ☆, U+26A0 ⚠, U+26A1 ⚡,
+U+2622 ☢, U+2623 ☣, U+2620 ☠, U+2699 ⚙, U+2744 ❄.
+
+### Combining Marks
+
+U+FF9E (HALFWIDTH KATAKANA VOICED SOUND MARK) and U+FF9F (HALFWIDTH KATAKANA SEMI-VOICED SOUND
+MARK) are spacing marks, not pure combining marks, but they behave unpredictably when adjacent
+to other characters in some rendering engines. Include them in the dataset but mark them with
+`combining: true`.
+
+### Surrogate Pairs
+
+None of the glyphs in this dataset require surrogate pairs — all codepoints are in the Basic
+Multilingual Plane (U+0000–U+FFFF). The SMP exclusion decision above was specifically to avoid
+surrogate-pair counting issues.
+
+---
+
+## Glyph Count Summary
+
+| Category | Key | Count |
+|---|---|---|
+| CJK Brackets & Punctuation | `cjk-brackets` | 35 |
+| Half-Width Katakana | `halfwidth-kata` | 63 |
+| Box Drawing & Block Elements | `box-drawing` | 87 |
+| Geometric Shapes | `geometric` | 84 |
+| Technical & APL Symbols | `technical` | 122 |
+| Arrows & Flow | `arrows` | 68 |
+| Warning & Status Marks | `warning-status` | 127 |
+| Math / Logic Operators | `math-logic` | 63 |
+| **TOTAL** | | **649** |
+
+All 649 glyphs are BMP codepoints. No surrogate pairs. No SMP symbols.
