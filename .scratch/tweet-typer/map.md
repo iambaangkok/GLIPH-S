@@ -42,7 +42,8 @@ Hierarchy: **Project › Thread › Post.**
   the curated symbol set and the visual theme.
 - Character counting: X-accurate weighted length via the `twitter-text` algorithm/package,
   with a configurable maximum.
-- Stack: Vite + React + TypeScript + a thin localStorage sync layer.
+- Stack: Vite + React + TypeScript + **Lexical** (rich-text editor) + a thin localStorage
+  sync layer. (Lexical locked by ticket 04.)
 - Output: per-Post copy + "Open in X" intent link (C); plus JSON export/import (D) tucked
   into a settings/misc area, not a primary control.
 - Character limit: a single global setting, default 280.
@@ -71,6 +72,16 @@ Hierarchy: **Project › Thread › Post.**
   geometric shapes, technical/APL, arrows, warning/status, math/logic). All BMP, no surrogate
   pairs. Drop-in dataset at `research/symbols.json`; rationale + rendering caveats in
   `research/02-symbol-dataset.md`. Note: half-width katakana still weighs 2 (see ticket 01).
+- [Editor input mechanism + cursor-aware insertion](../issues/04-editor-input-mechanism.md) —
+  **reverses the `<textarea>` recommendation:** `contenteditable` via **Lexical** (the way
+  X.com's composer works), chosen to enable inline over-limit shading. Plain text is canonical
+  (Lexical is just the surface, re-seeded on load; decorations derived at render, never
+  persisted). Insert targeting = last-focused-editor + last-selection ref plus
+  `onMouseDown`/`preventDefault` on panel buttons (ref covers the search-box focus case).
+  Style transform = bidirectional map, normalize-to-ASCII-then-apply, mutually exclusive,
+  Normal=reverse, unmapped pass-through, no-op on empty selection, mutates plain text in place.
+  MVP ships over-limit red-shading (split at `parseTweet().validRangeEnd`); entity highlighting
+  deferred.
 
 ## Not yet specified
 
@@ -84,6 +95,9 @@ Fog — graduates into sharp tickets as the decisions above resolve:
 - **Per-thread** char-limit override (MVP ships a single global limit).
 - **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,
   later feature — surfaced while resolving #3).
+- **Inline entity highlighting** — @mentions / #hashtags / $cashtags / URLs in accent color
+  via twitter-text `extractEntitiesWithIndices`, using the same Lexical decorator plumbing as
+  MVP's over-limit shading (zero architectural cost to add later — surfaced while resolving #4).
 
 ## Out of scope
 
