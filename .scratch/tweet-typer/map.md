@@ -89,15 +89,21 @@ Hierarchy: **Project › Thread › Post.**
   Normal=reverse, unmapped pass-through, no-op on empty selection, mutates plain text in place.
   MVP ships over-limit red-shading (split at `parseTweet().validRangeEnd`); entity highlighting
   deferred.
+- [Visual style / techwear theming](../issues/06-visual-theme.md) — **V7.4 "Kinetic Mono /
+  Instrument"**: warm near-black + cream **monochrome** (bg `#141310` / surface `#1b1914` / text
+  `#efe9db` / line `#2d2a23`), a **single amber signal** (`#e8a13c`) for over-limit + ruler-gauge +
+  warnings, grotesque display + IBM Plex Mono codes (CJK Noto Sans JP), halftone dot fields + hairline
+  rules + dingbat micro-marks, stadium pill chips, ruler-gauge counter. **Tokens + Tailwind, no
+  component library.** All variants + two iteration rounds preserved in
+  `prototypes/06-visual-theme.html`; full token sheet in the ticket answer.
 
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
-- **Build/execution work** (graduates once persistence #3, input mechanism #4, layout #5,
-  and theme #6 resolve — **only #6 remains**): app scaffold; Project/Thread/Post navigator;
-  thread & post editor; symbol browser; Styles tab; templates; global char-limit setting;
-  per-Post copy + "Open in X"; JSON export/import. Layout locked to the #5 Variant-A 3-pane.
+- **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14**
+  (see the frontier). Wired: 07 scaffold+tokens blocks everything; 08 persistence; then 09 navigator,
+  10 editor+counter, 11 symbol browser+Styles, 12 templates, 13 settings/import-export, 14 copy+Open-in-X.
 - Whole-thread **template skeletons** (MVP ships snippet templates only).
 - **Per-thread** char-limit override (MVP ships a single global limit).
 - **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,

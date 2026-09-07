@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tweet Typer — Visual Theme Variants (Ticket 6)</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #0a0a0b;
+    color: #cfd2d6;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    line-height: 1.4;
+  }
+  .page { max-width: 1180px; margin: 0 auto; padding: 32px 24px 96px; }
+  .page > header { margin-bottom: 28px; }
+  .page > header h1 { font-size: 20px; margin: 0 0 6px; letter-spacing: .04em; }
+  .page > header p { margin: 0; color: #8a8f96; font-size: 13px; max-width: 70ch; }
+
+  .variant { margin: 40px 0; border-top: 1px solid #1d1f23; padding-top: 24px; }
+  .variant__head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .variant__no {
+    font: 600 12px ui-monospace, monospace; letter-spacing: .12em;
+    color: #6b7078; border: 1px solid #2a2d33; padding: 2px 8px; border-radius: 4px;
+  }
+  .variant__name { font-size: 17px; font-weight: 650; margin: 0; }
+  .variant__mood { color: #8a8f96; font-size: 13px; margin: 0; }
+  .variant__meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 12px; margin: 12px 0 16px; }
+  .variant__meta div { font-size: 12px; color: #9aa0a7; }
+  .variant__meta b { color: #cfd2d6; font-weight: 600; display: block; text-transform: uppercase; letter-spacing: .08em; font-size: 10.5px; margin-bottom: 3px; }
+  .swatches { display: flex; gap: 6px; margin-top: 6px; }
+  .swatches span { width: 22px; height: 22px; border-radius: 4px; border: 1px solid rgba(255,255,255,.14); }
+
+  /* ---- shared mini 3-pane shell (themed via CSS vars) ---- */
+  .app {
+    --radius: 6px;
+    display: grid; grid-template-columns: 190px 1fr 210px;
+    height: 340px; border-radius: 8px; overflow: hidden;
+    border: var(--app-border, 1px solid #24272c);
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+  }
+  .app * { border-color: var(--line); }
+  .topbar {
+    grid-column: 1 / -1; display: flex; align-items: center; gap: 10px;
+    padding: 0 14px; height: 40px; background: var(--surface-2);
+    border-bottom: 1px solid var(--line); font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  }
+  .topbar .brand { color: var(--accent); font-weight: 700; letter-spacing: .18em; }
+  .topbar .spacer { flex: 1; }
+  .topbar .chip { border: 1px solid var(--line); padding: 2px 8px; border-radius: var(--radius); }
+
+  .pane { overflow: hidden; }
+  .nav { background: var(--surface); border-right: 1px solid var(--line); padding: 10px; }
+  .nav .grp { font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 10px 4px 6px; }
+  .nav .item { padding: 6px 8px; border-radius: var(--radius); font-size: 12.5px; color: var(--fg); }
+  .nav .item.sel { background: var(--sel); color: var(--accent); font-weight: 600; }
+  .nav .item.sub { padding-left: 18px; color: var(--muted); }
+
+  .editor { background: var(--bg); padding: 14px; overflow: auto; }
+  .post {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 12px; margin-bottom: 12px;
+  }
+  .post .body { font-family: var(--font-body); font-size: 13.5px; color: var(--fg); }
+  .post .body .sym { color: var(--accent); }
+  .post .over { background: var(--over); border-radius: 2px; }
+  .post footer { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .post footer .btn {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em;
+    padding: 4px 9px; border-radius: var(--radius); border: 1px solid var(--line);
+    color: var(--muted); text-transform: uppercase;
+  }
+  .post footer .btn.x { color: var(--accent); border-color: var(--accent); }
+  .post footer .spacer { flex: 1; }
+  .counter { font-family: var(--font-mono); font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .counter .ring { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--accent); }
+  .counter .num.warn { color: var(--warn); font-weight: 700; }
+
+  .panel { background: var(--surface); border-left: 1px solid var(--line); padding: 10px; }
+  .panel .tabs { display: flex; gap: 6px; margin-bottom: 10px; font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; }
+  .panel .tabs span { padding: 3px 8px; border-radius: var(--radius); color: var(--muted); border: 1px solid transparent; }
+  .panel .tabs span.on { color: var(--accent); border-color: var(--accent); }
+  .panel .search { font-family: var(--font-mono); font-size: 11px; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--muted); margin-bottom: 10px; }
+  .panel .grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 4px; }
+  .panel .grid b { display: grid; place-items: center; aspect-ratio: 1; font-weight: 400; font-size: 14px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--fg); }
+  .panel .grid b:hover { border-color: var(--accent); color: var(--accent); }
+
+  .note { font-size: 12px; color: #7f858c; margin-top: 10px; }
+  .note b { color: #aeb3b9; }
+  .rec { display: inline-block; margin-left: 8px; font: 600 10px ui-monospace, monospace; color: #0a0a0b; background: #d7e021; padding: 2px 7px; border-radius: 4px; letter-spacing: .06em; }
+  .rec.ref { background: #efe9db; color: #141310; }
+
+  /* ---- micrographic kit (ref-driven variants V7–V9) ---- */
+  .app .pill { border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .app .pill.x { color: var(--accent); border-color: var(--accent); }
+  .app .code { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .app .marks { display: flex; align-items: center; gap: 9px; color: var(--fg); font-size: 12px; }
+  .app .marks .m { display: inline-grid; place-items: center; line-height: 1; }
+  .app .marks .circ { width: 17px; height: 17px; border: 1px solid var(--line); border-radius: 50%; display: inline-grid; place-items: center; font: 7px/1 var(--font-mono); letter-spacing: 0; color: var(--fg); }
+  .app .ruler { height: 7px; background:
+    linear-gradient(var(--line), var(--line)) left bottom / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 13px) left bottom / 100% 6px no-repeat; }
+  .app .rn { display: none; font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: var(--muted); }
+
+  /* per-variant micrographic treatments */
+  .app--v8 { font-feature-settings: "tnum" 1; }
+  .app--v8 .post .over { background: transparent; text-decoration: line-through; text-decoration-thickness: 2px; opacity: .5; }
+  .app--v8 .num.warn { color: var(--fg); }
+  .app--v8 .counter .ring { border-top-color: var(--fg); }
+
+  .app--v9 .topbar { background: var(--fg); color: var(--bg); }
+  .app--v9 .topbar .brand { color: var(--bg); }
+  .app--v9 .topbar .pill, .app--v9 .topbar .code, .app--v9 .topbar .marks { color: var(--bg); }
+  .app--v9 .topbar .pill { border-color: rgba(0,0,0,.28); }
+  .app--v9 .topbar .circ { border-color: rgba(0,0,0,.35); color: var(--bg); }
+  .app--v9 .topbar .rn { display: inline; color: rgba(0,0,0,.55); }
+  .app--v9 .nav .item.sel { background: var(--fg); color: var(--bg); }
+  .app--v9 .panel .tabs span.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+  /* ---- V7 iterations (7.1 / 7.2 / 7.3) — all children of Kinetic Mono ---- */
+  /* 7.1 Ticker — ruler-gauge counter + instrument chrome */
+  .app--v71 .counter .ring { display: none; }
+  .app--v71 .counter { gap: 7px; }
+  .app--v71 .counter::before {
+    content: ""; width: 64px; height: 9px; align-self: center;
+    background:
+      linear-gradient(var(--warn), var(--warn)) left center / 82% 3px no-repeat,
+      linear-gradient(var(--line), var(--line)) left center / 100% 1px no-repeat,
+      repeating-linear-gradient(90deg, var(--muted) 0 1px, transparent 1px 8px) center / 100% 9px no-repeat;
+  }
+  .app--v71 .pill { border-radius: 4px; }
+  .app--v71 .topbar .brand::after { content: " · 40°44′N"; font: 9px var(--font-mono); letter-spacing: .12em; color: var(--muted); }
+
+  /* 7.2 Halftone — inverted brand slab + halftone dot band + faint textured field */
+  .app--v72 .topbar .brand { background: var(--fg); color: var(--bg); padding: 2px 8px; border-radius: 4px; letter-spacing: .14em; }
+  .app--v72 .panel .ruler { height: 22px; background: radial-gradient(var(--muted) 26%, transparent 28%) 0 0 / 6px 6px; opacity: .55; }
+  .app--v72 .editor { background-image: radial-gradient(rgba(239,233,219,.07) 22%, transparent 24%); background-size: 7px 7px; }
+
+  /* 7.3 Hairline Quiet — borderless codes, pure mono (no amber), more air */
+  .app--v73 .pill { border-color: transparent; padding: 2px 2px; }
+  .app--v73 .pill.x { border-color: transparent; }
+  .app--v73 .post { background: transparent; }
+  .app--v73 .counter .ring { border-top-color: var(--fg); }
+  .app--v73 .num.warn { color: var(--fg); font-weight: 600; }
+  .app--v73 .post .over { background: transparent; border-bottom: 1px solid var(--fg); opacity: .55; }
+  .app--v73 .marks .circ { border-color: transparent; }
+
+  /* 7.4 — normal V7 + halftone backgrounds (7.2) + ruler-gauge counter & amber (7.1) */
+  .app--v74 .counter .ring { display: none; }
+  .app--v74 .counter { gap: 7px; }
+  .app--v74 .counter::before {
+    content: ""; width: 64px; height: 9px; align-self: center;
+    background:
+      linear-gradient(var(--warn), var(--warn)) left center / 82% 3px no-repeat,
+      linear-gradient(var(--line), var(--line)) left center / 100% 1px no-repeat,
+      repeating-linear-gradient(90deg, var(--muted) 0 1px, transparent 1px 8px) center / 100% 9px no-repeat;
+  }
+  .app--v74 .panel .ruler { height: 22px; background: radial-gradient(var(--muted) 26%, transparent 28%) 0 0 / 6px 6px; opacity: .55; }
+  .app--v74 .editor { background-image: radial-gradient(rgba(239,233,219,.07) 22%, transparent 24%); background-size: 7px 7px; }
+
+  /* ---- V7.4 iterations (inherit .app--v74, then tweak one axis each) ---- */
+  /* 7.4.1 — punchier: segmented amber gauge + more amber touches */
+  .app--v741 .counter::before {
+    background:
+      repeating-linear-gradient(90deg, var(--warn) 0 5px, transparent 5px 8px) left center / 82% 9px no-repeat,
+      repeating-linear-gradient(90deg, var(--muted) 0 5px, transparent 5px 8px) left center / 100% 9px no-repeat;
+  }
+  .app--v741 .panel .tabs span.on { color: var(--warn); border-color: var(--warn); }
+  .app--v741 .pill.x { color: var(--warn); border-color: var(--warn); }
+
+  /* 7.4.2 — texture-forward: stronger halftone across topbar, editor, posts + taller band */
+  .app--v742 .topbar { background-image: radial-gradient(rgba(239,233,219,.10) 24%, transparent 26%); background-size: 6px 6px; }
+  .app--v742 .editor { background-image: radial-gradient(rgba(239,233,219,.11) 24%, transparent 26%); background-size: 6px 6px; }
+  .app--v742 .post { background-image: radial-gradient(rgba(239,233,219,.05) 24%, transparent 26%); background-size: 6px 6px; }
+  .app--v742 .panel .ruler { height: 30px; opacity: .7; }
+
+  /* 7.4.3 — refined quiet: fine gauge, faint texture, amber only on gauge/shading, more air */
+  .app--v743 .counter::before {
+    width: 56px; height: 6px;
+    background:
+      linear-gradient(var(--warn), var(--warn)) left center / 82% 2px no-repeat,
+      linear-gradient(var(--line), var(--line)) left center / 100% 1px no-repeat;
+  }
+  .app--v743 .num.warn { color: var(--fg); }
+  .app--v743 .editor { background-image: radial-gradient(rgba(239,233,219,.04) 20%, transparent 22%); background-size: 8px 8px; }
+  .app--v743 .panel .ruler { height: 16px; opacity: .4; }
+  .app--v743 .post { margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>TWEET TYPER — Visual Theme Variants · ticket 6</h1>
+    <p>Six directions inside the sci-fi / techwear / industrial-micrographic anchor, each applied to the
+       locked <b style="color:#cfd2d6">Variant-A 3-pane</b> layout (navigator · post editor · symbols panel)
+       so they compare like-for-like. Every mock shows the same sample: a selected thread, a Post with an
+       over-limit fragment shaded, the weighted counter in a warning state, and the symbols grid. Skim
+       top→bottom: restraint decreases as you go down.</p>
+    <p style="margin-top:10px"><b style="color:#cfd2d6">V7–V9</b> are new, added after studying the
+       supplied <b style="color:#cfd2d6">micrographic reference set</b> — a warm near-black + cream
+       <b style="color:#cfd2d6">monochrome</b> system (no chromatic accent; emphasis via inverted cream
+       slabs), bold grotesque display paired with wide-tracked mono codes, stadium chips, ruler ticks,
+       and technical dingbat marks. They live in the V1 (dark) + V2 (clean mono) space you flagged; V8
+       carries V4's technical-drawing side. V1–V6 are left untouched for comparison.</p>
+  </header>
+
+  <!-- ============ V1 : KŌKAKU HUD ============ -->
+  <section class="variant">
+    <div class="variant__head">
+      <span class="variant__no">V1</span>
+      <h2 class="variant__name">Kōkaku HUD</h2>
+      <p class="variant__mood">Dark industrial heads-up display — Ghost-in-the-Shell teal on near-black, corner brackets, faint scanlines.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Type</b> IBM Plex Mono (UI/labels) + Inter (body); CJK: Noto Sans JP</div>
+      <div><b>Accent</b> signal-teal, amber for warnings/over-limit</div>
+      <div><b>Texture</b> 3% scanline overlay, 1px hairline rules, animated counter ring
+        <div class="swatches"><span style="background:#0b0e10"></span><span style="background:#12171a"></span><span style="background:#2dd4bf"></span><span style="background:#f5a524"></span><span style="background:#e5e9ec"></span></div>
+      </div>
+    </div>
+    <div class="app" style="
+      --bg:#0b0e10; --surface:#101519; --surface-2:#0d1114; --fg:#dfe4e7; --muted:#6b787f;
+      --line:#1c2529; --accent:#2dd4bf; --warn:#f5a524; --over:rgba(245,165,36,.22);
+      --sel:rgba(45,212,191,.12); --font-body:'Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+      background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 3px);">
+    </div>
+    <p class="note"><b>Best if:</b> you want the "operator console" feel dialled up but still readable — this is the literal read of the anchor.</p>
+  </section>
+
+  <!-- ============ V2 : CLEAN TECHWEAR MONO ============ -->
+  <section class="variant">
+    <div class="variant__head">
+      <span class="variant__no">V2</span>
+      <h2 class="variant__name">Clean Techwear Mono</h2>
+      <p class="variant__mood">ACRONYM/Arc'teryx-Veilance restraint — off-white paper, near-black ink, one safety-orange accent, huge whitespace.</p>
+      <span class="rec">RECOMMENDED</span>
+    </div>
+    <div class="variant__meta">
+      <div><b>Type</b> Space Grotesk / Inter body + JetBrains Mono labels; micrographic caps</div>
+      <div><b>Accent</b> single safety-orange; warning = same orange, heavier</div>
+      <div><b>Texture</b> near-none: hairlines, generous padding, no glow
+        <div class="swatches"><span style="background:#f4f3ef"></span><span style="background:#ffffff"></span><span style="background:#141414"></span><span style="background:#ff5a1f"></span><span style="background:#8a8f8a"></span></div>
+      </div>
+    </div>
+    <div class="app" style="
+      --bg:#f4f3ef; --surface:#ffffff; --surface-2:#ecebe6; --fg:#141414; --muted:#7c817c;
+      --line:#dcdad3; --accent:#ff5a1f; --warn:#ff5a1f; --over:rgba(255,90,31,.16);
+      --sel:rgba(255,90,31,.10); --app-border:1px solid #dcdad3;
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'JetBrains Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> you want it to read premium and calm, aging well — the anchor expressed through discipline, not decoration. Lightest cognitive load for a text tool.</p>
+  </section>
+
+  <!-- ============ V3 : PHOSPHOR TERMINAL ============ -->
+  <section class="variant">
+    <div class="variant__head">
+      <span class="variant__no">V3</span>
+      <h2 class="variant__name">Phosphor Terminal</h2>
+      <p class="variant__mood">CRT terminal — green (switchable amber) phosphor on black, everything monospace, block cursor, faint bloom.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Type</b> 100% monospace (JetBrains Mono / IBM Plex Mono); no proportional</div>
+      <div><b>Accent</b> phosphor-green; over-limit = red phosphor</div>
+      <div><b>Texture</b> scanlines + text-shadow bloom; blinking cursor
+        <div class="swatches"><span style="background:#050705"></span><span style="background:#0a0f0a"></span><span style="background:#33ff66"></span><span style="background:#ff5555"></span><span style="background:#7dffa5"></span></div>
+      </div>
+    </div>
+    <div class="app" style="
+      --bg:#050705; --surface:#0a0f0a; --surface-2:#070a07; --fg:#7dffa5; --muted:#3f7a52;
+      --line:#153d22; --accent:#33ff66; --warn:#ff5555; --over:rgba(255,85,85,.22);
+      --sel:rgba(51,255,102,.12); --font-body:'JetBrains Mono',ui-monospace,monospace; --font-mono:'JetBrains Mono',ui-monospace,monospace;
+      text-shadow:0 0 4px rgba(51,255,102,.25);
+      background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 1px,transparent 1px 3px);">
+    </div>
+    <p class="note"><b>Best if:</b> you want maximum "hacker" identity. Fun and cohesive, but all-mono body text is the least comfortable for long composing.</p>
+  </section>
+
+  <!-- ============ V4 : BLUEPRINT / MICROGRAPHIC ============ -->
+  <section class="variant">
+    <div class="variant__head">
+      <span class="variant__no">V4</span>
+      <h2 class="variant__name">Blueprint Micrographic</h2>
+      <p class="variant__mood">Technical drafting — cyan hairlines on deep navy, dimension ticks, drafting labels, grid ground.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Type</b> Mono labels + humanist sans body; small-caps drafting annotations</div>
+      <div><b>Accent</b> drafting-cyan; warning = safety-red</div>
+      <div><b>Texture</b> subtle blueprint grid, corner registration marks
+        <div class="swatches"><span style="background:#0a1626"></span><span style="background:#0e1e33"></span><span style="background:#5ec8f0"></span><span style="background:#ff6b6b"></span><span style="background:#c7d6e5"></span></div>
+      </div>
+    </div>
+    <div class="app" style="
+      --bg:#0a1626; --surface:#0e1e33; --surface-2:#0b1a2c; --fg:#c7d6e5; --muted:#5b7591;
+      --line:#1c3350; --accent:#5ec8f0; --warn:#ff6b6b; --over:rgba(255,107,107,.20);
+      --sel:rgba(94,200,240,.12); --font-body:'Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+      background-image:linear-gradient(rgba(94,200,240,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(94,200,240,.05) 1px,transparent 1px);
+      background-size:22px 22px;">
+    </div>
+    <p class="note"><b>Best if:</b> you want the "micrographic / technical marks" half of the anchor to lead — distinctive, still calm enough to work in.</p>
+  </section>
+
+  <!-- ============ V5 : BRUTALIST DATA SLAB ============ -->
+  <section class="variant">
+    <div class="variant__head">
+      <span class="variant__no">V5</span>
+      <h2 class="variant__name">Brutalist Data Slab</h2>
+      <p class="variant__mood">Industrial-brutalist — raw concrete grey, hard black borders, warning-tape yellow, zero radius, extreme type-scale contrast.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Type</b> Grotesk display (big) + mono data (tiny); brutal size jumps</div>
+      <div><b>Accent</b> hazard-yellow on black; over-limit = red block</div>
+      <div><b>Texture</b> none — flat, sharp corners, thick 2px rules
+        <div class="swatches"><span style="background:#c8c6bf"></span><span style="background:#dedcd4"></span><span style="background:#111111"></span><span style="background:#f2e400"></span><span style="background:#e5342b"></span></div>
+      </div>
+    </div>
+    <div class="app" style="
+      --bg:#c8c6bf; --surface:#dedcd4; --surface-2:#111111; --fg:#111111; --muted:#5c5b55;
+      --line:#111111; --accent:#111111; --warn:#e5342b; --over:rgba(242,228,0,.6);
+      --sel:#f2e400; --radius:0px; --app-border:2px solid #111111;
+      --font-body:'Space Grotesk','Arial Narrow',sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> you want it loud, opinionated, and screenshot-worthy. Highest personality; the hazard palette leans "industrial label" hard.</p>
+  </section>
+
+  <!-- ============ V6 : NEON CYBER-NOIR ============ -->
+  <section class="variant">
+    <div class="variant__head">
+      <span class="variant__no">V6</span>
+      <h2 class="variant__name">Neon Cyber-noir</h2>
+      <p class="variant__mood">The loud one — glassy dark surfaces, magenta + cyan neon, soft glow, subtle gradient wash. Cyberpunk cousin of V1.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Type</b> Mono labels + Inter body; neon glow on accents only</div>
+      <div><b>Accent</b> cyan primary + magenta secondary; over-limit = hot magenta</div>
+      <div><b>Texture</b> glass surfaces, radial glow, faint grid
+        <div class="swatches"><span style="background:#0a0714"></span><span style="background:#140d24"></span><span style="background:#22d3ee"></span><span style="background:#ff2fd0"></span><span style="background:#dcd6f0"></span></div>
+      </div>
+    </div>
+    <div class="app" style="
+      --bg:#0a0714; --surface:rgba(30,18,54,.6); --surface-2:#100a22; --fg:#dcd6f0; --muted:#7c6fa6;
+      --line:#2a1d4d; --accent:#22d3ee; --warn:#ff2fd0; --over:rgba(255,47,208,.22);
+      --sel:rgba(34,211,238,.14); --font-body:'Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+      background-image:radial-gradient(120% 90% at 80% -10%,rgba(34,211,238,.14),transparent 55%),radial-gradient(90% 80% at -10% 110%,rgba(255,47,208,.12),transparent 55%);">
+    </div>
+    <p class="note"><b>Best if:</b> you want maximum "cool"/shareable energy. Furthest from the restrained end; watch legibility & glow fatigue over long sessions.</p>
+  </section>
+
+  <!-- ============ V7 : KINETIC MONO  (ref-driven — V1 × V2) ============ -->
+  <section class="variant">
+    <div class="variant__head">
+      <span class="variant__no">V7</span>
+      <h2 class="variant__name">Kinetic Mono</h2>
+      <p class="variant__mood">The direct read of your references — warm near-black + cream, fully monochrome. Bold grotesque brand, wide-tracked mono codes, stadium chips, dingbat marks. V1's darkness with V2's discipline.</p>
+      <span class="rec ref">REF-DRIVEN · PICK</span>
+    </div>
+    <div class="variant__meta">
+      <div><b>Type</b> Space Grotesk / grotesque display + IBM Plex Mono codes; CJK: Noto Sans JP</div>
+      <div><b>Accent</b> none — monochrome; a single warm-amber signal reserved only for over-limit</div>
+      <div><b>Texture</b> hairline rules, ruler ticks, CE/®/⇄/! micro-marks, inverted cream chips
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#1b1914"></span><span style="background:#efe9db"></span><span style="background:#8b8577"></span><span style="background:#e8a13c"></span></div>
+      </div>
+    </div>
+    <div class="app app--v7" data-custom style="
+      --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+      --line:#2d2a23; --accent:#efe9db; --warn:#e8a13c; --over:rgba(232,161,60,.20);
+      --sel:rgba(239,233,219,.10);
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> you want the reference set translated straight to the app — the strongest single answer to "I mainly like 1 and 2." Monochrome keeps focus on the text; the lone amber signal is the only concession to function.</p>
+  </section>
+
+  <!-- ============ V8 : TECHNICAL ANNOTATED  (ref-driven — V4 lineage, mono) ============ -->
+  <section class="variant">
+    <div class="variant__head">
+      <span class="variant__no">V8</span>
+      <h2 class="variant__name">Technical Annotated</h2>
+      <p class="variant__mood">The spec-sheet read (refs 031 / 035 / 050) — everything mono, ruler scales & asset codes as chrome, over-limit shown as a struck-through range instead of colour. Purist, zero accent.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Type</b> IBM Plex Mono throughout (body + labels); serif XIV accents optional</div>
+      <div><b>Accent</b> none at all — over-limit = strikethrough + dimmed, counter stays cream</div>
+      <div><b>Texture</b> ruler ticks, dashed connectors, coordinate/asset readouts, halftone marks
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#1b1914"></span><span style="background:#efe9db"></span><span style="background:#8b8577"></span><span style="background:#2d2a23"></span></div>
+      </div>
+    </div>
+    <div class="app app--v8" data-custom style="
+      --bg:#141310; --surface:#191712; --surface-2:#100f0c; --fg:#efe9db; --muted:#847e71;
+      --line:#2b2820; --accent:#efe9db; --warn:#efe9db; --over:transparent;
+      --sel:rgba(239,233,219,.08);
+      --font-body:'IBM Plex Mono',ui-monospace,monospace; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> you want the "curated_visual_infrastructure" annotated feel to lead. Most distinctive and on-brand for the refs — but all-mono body is the heaviest to read for long composing.</p>
+  </section>
+
+  <!-- ============ V9 : INVERTED EDITORIAL  (ref-driven — high-contrast slabs) ============ -->
+  <section class="variant">
+    <div class="variant__head">
+      <span class="variant__no">V9</span>
+      <h2 class="variant__name">Inverted Editorial</h2>
+      <p class="variant__mood">The contrast read (refs 003 / 040 KINETIC pill) — cream slabs flip to black text on the top bar, selected states, and active tab; serif Roman-numeral accents. Warmer, gallery-like, still monochrome.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Type</b> Grotesque display + mono codes + serif (XIV) accents for editorial contrast</div>
+      <div><b>Accent</b> the cream itself, used as inverted slabs; amber only for the counter warning</div>
+      <div><b>Texture</b> solid cream blocks vs. dark field, pill chips, marks cluster
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#efe9db"></span><span style="background:#1b1914"></span><span style="background:#8b8577"></span><span style="background:#e8a13c"></span></div>
+      </div>
+    </div>
+    <div class="app app--v9" data-custom style="
+      --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+      --line:#2d2a23; --accent:#efe9db; --warn:#e8a13c; --over:rgba(232,161,60,.18);
+      --sel:rgba(239,233,219,.10);
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> you want more visual punch than V7 without leaving the monochrome system — the inverted slabs read premium/editorial. Slightly louder; the high-contrast bars draw the eye away from the text a touch.</p>
+  </section>
+
+  <!-- ============ V7 ITERATIONS ============ -->
+  <section class="variant" style="border-top-width:2px;border-top-color:#3a3d42;">
+    <div class="variant__head">
+      <span class="variant__no" style="border-color:#efe9db;color:#efe9db">V7 ↳</span>
+      <h2 class="variant__name">Iterating on Kinetic Mono</h2>
+      <p class="variant__mood">Same warm-black + cream monochrome base as V7, three directions to push it: instrument, texture, or maximum quiet.</p>
+    </div>
+  </section>
+
+  <!-- V7.1 -->
+  <section class="variant" style="border-top:none;padding-top:8px;">
+    <div class="variant__head">
+      <span class="variant__no">V7.1</span>
+      <h2 class="variant__name">Kinetic Mono — Ticker</h2>
+      <p class="variant__mood">More instrument. The circular counter becomes a horizontal <b style="color:#cfd2d6">ruler-gauge</b> that fills toward the limit (amber past it); squarer chips; a coordinate stamp on the brand. Leans into refs 029 / 050.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Changed vs V7</b> counter = tick-gauge, not a ring; chips squared to 4px; instrument chrome</div>
+      <div><b>Keeps</b> monochrome + single amber over-limit signal</div>
+      <div><b>Feel</b> technical readout / measuring instrument
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#1b1914"></span><span style="background:#efe9db"></span><span style="background:#8b8577"></span><span style="background:#e8a13c"></span></div>
+      </div>
+    </div>
+    <div class="app app--v7 app--v71" data-custom style="
+      --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+      --line:#2d2a23; --accent:#efe9db; --warn:#e8a13c; --over:rgba(232,161,60,.20);
+      --sel:rgba(239,233,219,.10);
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> the character count should feel like a gauge you watch, not a number you read. The most "operator console" of the three, still calm.</p>
+  </section>
+
+  <!-- V7.2 -->
+  <section class="variant" style="border-top:none;padding-top:8px;">
+    <div class="variant__head">
+      <span class="variant__no">V7.2</span>
+      <h2 class="variant__name">Kinetic Mono — Halftone</h2>
+      <p class="variant__mood">More texture &amp; brand. An <b style="color:#cfd2d6">inverted cream brand slab</b> (KINETIC-pill, refs 040 / 003), a <b style="color:#cfd2d6">halftone dot band</b> in the symbol panel, and a faint dotted field behind the editor. Refs 011 / 039.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Changed vs V7</b> brand becomes a solid inverted slab; halftone band + faint texture</div>
+      <div><b>Keeps</b> monochrome + single amber over-limit signal</div>
+      <div><b>Feel</b> warmer, more designed / branded
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#efe9db"></span><span style="background:#1b1914"></span><span style="background:#8b8577"></span><span style="background:#e8a13c"></span></div>
+      </div>
+    </div>
+    <div class="app app--v7 app--v72" data-custom style="
+      --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+      --line:#2d2a23; --accent:#efe9db; --warn:#e8a13c; --over:rgba(232,161,60,.20);
+      --sel:rgba(239,233,219,.10);
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> V7 feels a touch bare and you want the halftone/branded warmth from the refs — without adding any color.</p>
+  </section>
+
+  <!-- V7.3 -->
+  <section class="variant" style="border-top:none;padding-top:8px;">
+    <div class="variant__head">
+      <span class="variant__no">V7.3</span>
+      <h2 class="variant__name">Kinetic Mono — Hairline Quiet</h2>
+      <p class="variant__mood">Maximum restraint. <b style="color:#cfd2d6">Borderless</b> codes (no chip outlines), transparent posts, more air, and <b style="color:#cfd2d6">pure monochrome</b> — over-limit is a hairline underline + dim, <i>no amber at all</i>. Tests whether the signal color earns its place.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Changed vs V7</b> drops chip borders + post fills; over-limit = underline, not color</div>
+      <div><b>Keeps</b> the type system &amp; dingbat marks; adds whitespace</div>
+      <div><b>Feel</b> quietest / most V2-discipline
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#1b1914"></span><span style="background:#efe9db"></span><span style="background:#8b8577"></span><span style="background:#2d2a23"></span></div>
+      </div>
+    </div>
+    <div class="app app--v7 app--v73" data-custom style="
+      --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+      --line:#2d2a23; --accent:#efe9db; --warn:#efe9db; --over:transparent;
+      --sel:rgba(239,233,219,.08);
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> you want it to disappear behind the writing. Most elegant, least "designed" — but the over-limit state is subtler, worth a gut-check on legibility.</p>
+  </section>
+
+  <!-- V7.4 — the splice -->
+  <section class="variant" style="border-top-width:2px;border-top-color:#e8a13c;">
+    <div class="variant__head">
+      <span class="variant__no" style="border-color:#e8a13c;color:#e8a13c">V7.4</span>
+      <h2 class="variant__name">Kinetic Mono — Instrument</h2>
+      <p class="variant__mood">Your splice: <b style="color:#cfd2d6">normal V7</b> (rounded chips, plain brand) + the <b style="color:#cfd2d6">halftone backgrounds</b> from 7.2 + the <b style="color:#cfd2d6">ruler-gauge counter and amber</b> from 7.1.</p>
+      <span class="rec ref">YOUR SPLICE</span>
+    </div>
+    <div class="variant__meta">
+      <div><b>From V7</b> rounded stadium chips, plain (non-inverted) grotesque brand, dingbat marks</div>
+      <div><b>From 7.2</b> halftone dot band in the panel + faint dotted field behind the editor</div>
+      <div><b>From 7.1</b> ruler-gauge counter + amber (fill, over-limit shading, warning readout)
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#1b1914"></span><span style="background:#efe9db"></span><span style="background:#8b8577"></span><span style="background:#e8a13c"></span></div>
+      </div>
+    </div>
+    <div class="app app--v7 app--v74" data-custom style="
+      --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+      --line:#2d2a23; --accent:#efe9db; --warn:#e8a13c; --over:rgba(232,161,60,.20);
+      --sel:rgba(239,233,219,.10);
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Note:</b> brand and chips stay exactly as normal V7 — the only additions are the textured fields and the gauge/amber. This is the strongest single candidate so far; say the word and I'll lock it as the ticket answer.</p>
+  </section>
+
+  <!-- ============ V7.4 ITERATIONS ============ -->
+  <section class="variant" style="border-top-width:2px;border-top-color:#e8a13c;">
+    <div class="variant__head">
+      <span class="variant__no" style="border-color:#e8a13c;color:#e8a13c">V7.4 ↳</span>
+      <h2 class="variant__name">Iterating on V7.4 Instrument</h2>
+      <p class="variant__mood">Same splice (halftone fields + ruler-gauge + amber), each pushing one dial: punchier, more texture, or refined.</p>
+    </div>
+  </section>
+
+  <!-- V7.4.1 -->
+  <section class="variant" style="border-top:none;padding-top:8px;">
+    <div class="variant__head">
+      <span class="variant__no">V7.4.1</span>
+      <h2 class="variant__name">Instrument — Punchy</h2>
+      <p class="variant__mood">More amber, more instrument. The gauge becomes <b style="color:#cfd2d6">segmented amber ticks</b>; the active panel tab and "open in X" pick up amber too. The measuring-device read, dialed up.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Changed vs V7.4</b> gauge = discrete amber segments; amber active tab + primary chip</div>
+      <div><b>Keeps</b> halftone fields, rounded chips, plain brand</div>
+      <div><b>Feel</b> loudest of the three — most "console"
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#1b1914"></span><span style="background:#efe9db"></span><span style="background:#8b8577"></span><span style="background:#e8a13c"></span></div>
+      </div>
+    </div>
+    <div class="app app--v7 app--v74 app--v741" data-custom style="
+      --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+      --line:#2d2a23; --accent:#efe9db; --warn:#e8a13c; --over:rgba(232,161,60,.20);
+      --sel:rgba(239,233,219,.10);
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> you want the amber to be part of the identity, not just a warning — the segmented gauge reads as a deliberate instrument.</p>
+  </section>
+
+  <!-- V7.4.2 -->
+  <section class="variant" style="border-top:none;padding-top:8px;">
+    <div class="variant__head">
+      <span class="variant__no">V7.4.2</span>
+      <h2 class="variant__name">Instrument — Textured</h2>
+      <p class="variant__mood">Halftone-forward. The <b style="color:#cfd2d6">dot field spreads</b> across the top bar, editor and post surfaces, and the panel halftone band grows. More atmosphere, same gauge &amp; amber.</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Changed vs V7.4</b> stronger + wider halftone (top bar, posts, taller band)</div>
+      <div><b>Keeps</b> ruler-gauge + amber, rounded chips, plain brand</div>
+      <div><b>Feel</b> most tactile / printed-label
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#1b1914"></span><span style="background:#efe9db"></span><span style="background:#8b8577"></span><span style="background:#e8a13c"></span></div>
+      </div>
+    </div>
+    <div class="app app--v7 app--v74 app--v742" data-custom style="
+      --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+      --line:#2d2a23; --accent:#efe9db; --warn:#e8a13c; --over:rgba(232,161,60,.20);
+      --sel:rgba(239,233,219,.10);
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> the halftone is the thing you liked most — this leans into it. Watch contrast on the text where the dots sit behind posts.</p>
+  </section>
+
+  <!-- V7.4.3 -->
+  <section class="variant" style="border-top:none;padding-top:8px;">
+    <div class="variant__head">
+      <span class="variant__no">V7.4.3</span>
+      <h2 class="variant__name">Instrument — Refined</h2>
+      <p class="variant__mood">Production polish. A <b style="color:#cfd2d6">fine hairline gauge</b>, fainter halftone, more air between posts, and amber kept to the gauge + over-limit only (counter number stays cream).</p>
+    </div>
+    <div class="variant__meta">
+      <div><b>Changed vs V7.4</b> thinner gauge, subtler texture, amber restrained, roomier</div>
+      <div><b>Keeps</b> everything V7.4 — just tuned down a notch</div>
+      <div><b>Feel</b> calmest / most shippable
+        <div class="swatches"><span style="background:#141310"></span><span style="background:#1b1914"></span><span style="background:#efe9db"></span><span style="background:#8b8577"></span><span style="background:#e8a13c"></span></div>
+      </div>
+    </div>
+    <div class="app app--v7 app--v74 app--v743" data-custom style="
+      --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+      --line:#2d2a23; --accent:#efe9db; --warn:#e8a13c; --over:rgba(232,161,60,.18);
+      --sel:rgba(239,233,219,.10);
+      --font-body:'Space Grotesk','Inter',system-ui,sans-serif; --font-mono:'IBM Plex Mono',ui-monospace,monospace;">
+    </div>
+    <p class="note"><b>Best if:</b> V7.4 is right but you want it quieter and more finished — this is the most likely to age well in daily use.</p>
+  </section>
+
+</div>
+
+<template id="mock">
+  <div class="topbar">
+    <span class="brand">TWEET·TYPER</span>
+    <span class="chip">Unfiled</span>
+    <span class="spacer"></span>
+    <span class="chip">280</span>
+    <span class="chip">⚙ settings</span>
+    <span class="chip">⇄ json</span>
+  </div>
+
+  <div class="pane nav">
+    <div class="grp">Projects</div>
+    <div class="item sel">◈ Launch teasers</div>
+    <div class="item sub">└ thread: cortex-drop</div>
+    <div class="item sub">└ thread: 攻殻 notes</div>
+    <div class="item">◇ Unfiled</div>
+    <div class="grp">Templates</div>
+    <div class="item">▤ CTA — link</div>
+    <div class="item">▤ sign-off</div>
+  </div>
+
+  <div class="pane editor">
+    <div class="post">
+      <div class="body">Ghost protocol online <span class="sym">「◈」</span> shipping the browser today —
+        <span class="sym">▓▒░</span> curated glyphs, weighted counts, zero backend.
+        <span class="over">this fragment pushes past the limit and shades red as you type ▮▮▮</span></div>
+      <footer>
+        <span class="counter"><span class="ring"></span><span class="num warn">−12</span></span>
+        <span class="spacer"></span>
+        <span class="btn">copy</span>
+        <span class="btn x">open in X ↗</span>
+      </footer>
+    </div>
+    <div class="post">
+      <div class="body">Post 2 <span class="sym">⟟ ⌁ ⏿</span> thread continues…</div>
+      <footer><span class="counter"><span class="ring"></span><span class="num">41</span></span><span class="spacer"></span><span class="btn">copy</span><span class="btn x">open in X ↗</span></footer>
+    </div>
+  </div>
+
+  <div class="pane panel">
+    <div class="tabs"><span class="on">Symbols</span><span>Styles</span></div>
+    <div class="search">⌕ search glyphs…</div>
+    <div class="grid">
+      <b>「</b><b>」</b><b>◈</b><b>◇</b><b>▓</b><b>░</b>
+      <b>⟟</b><b>⌁</b><b>⏿</b><b>▮</b><b>△</b><b>⌖</b>
+      <b>ｶ</b><b>ﾀ</b><b>ﾅ</b><b>→</b><b>⇌</b><b>∎</b>
+    </div>
+  </div>
+</template>
+
+<template id="mock2">
+  <div class="topbar">
+    <span class="brand">KINETIC</span>
+    <span class="pill">Unfiled</span>
+    <span class="spacer"></span>
+    <span class="rn">XIV</span>
+    <span class="code">ASSET_ID 2026_MG_990X</span>
+    <span class="marks"><span class="circ">26</span><span class="m">⇄</span><span class="m">!</span></span>
+    <span class="pill">280</span>
+  </div>
+
+  <div class="pane nav">
+    <div class="grp">01 — Projects</div>
+    <div class="item sel">◈ Launch teasers</div>
+    <div class="item sub">└ cortex-drop</div>
+    <div class="item sub">└ 攻殻 notes</div>
+    <div class="item">◇ Unfiled</div>
+    <div class="grp">02 — Templates</div>
+    <div class="item">▤ CTA — link</div>
+    <div class="item">▤ sign-off</div>
+    <div class="ruler" style="margin-top:14px"></div>
+  </div>
+
+  <div class="pane editor">
+    <div class="post">
+      <div class="body">Ghost protocol online <span class="sym">「◈」</span> shipping the browser today —
+        <span class="sym">▓▒░</span> curated glyphs, weighted counts, zero backend.
+        <span class="over">this fragment pushes past the limit and is flagged as you type ▮▮▮</span></div>
+      <footer>
+        <span class="counter"><span class="ring"></span><span class="num warn">−12</span></span>
+        <span class="code">43R-004585</span>
+        <span class="spacer"></span>
+        <span class="pill">copy</span>
+        <span class="pill x">open in X ↗</span>
+      </footer>
+    </div>
+    <div class="post">
+      <div class="body">Post 02 <span class="sym">⟟ ⌁ ⏿</span> thread continues…</div>
+      <footer><span class="counter"><span class="ring"></span><span class="num">41</span></span><span class="spacer"></span><span class="pill">copy</span><span class="pill x">open in X ↗</span></footer>
+    </div>
+  </div>
+
+  <div class="pane panel">
+    <div class="tabs"><span class="on">Symbols</span><span>Styles</span></div>
+    <div class="search">⌕ search glyphs…</div>
+    <div class="ruler" style="margin-bottom:10px"></div>
+    <div class="grid">
+      <b>「</b><b>」</b><b>◈</b><b>◇</b><b>▓</b><b>░</b>
+      <b>⟟</b><b>⌁</b><b>⏿</b><b>▮</b><b>△</b><b>⌖</b>
+      <b>ｶ</b><b>ﾀ</b><b>ﾅ</b><b>→</b><b>⇌</b><b>∎</b>
+    </div>
+    <div class="marks" style="margin-top:12px;justify-content:space-between">
+      <span class="circ">76</span><span class="m">CE</span><span class="m">⇄</span><span class="m">⊕</span><span class="m">◉</span><span class="code">MG_990X</span>
+    </div>
+  </div>
+</template>
+
+<script>
+  const tpl = document.getElementById('mock');
+  const tpl2 = document.getElementById('mock2');
+  document.querySelectorAll('.app:not([data-custom])').forEach(a => a.append(tpl.content.cloneNode(true)));
+  document.querySelectorAll('.app[data-custom]').forEach(a => a.append(tpl2.content.cloneNode(true)));
+</script>
+</body>
+</html>
