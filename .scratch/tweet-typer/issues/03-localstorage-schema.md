@@ -1,7 +1,7 @@
 # localStorage schema & persistence
 
 Type: grilling
-Status: claimed (assigned: iambaangkok)
+Status: closed (resolved)
 Blocked by: —
 
 ## Question
@@ -28,3 +28,34 @@ persisted in localStorage. Decisions to settle:
    (no drafts) is implemented without thrashing localStorage.
 
 Resolve via `/grilling` + `/domain-modeling`.
+
+---
+
+## Resolution
+
+Resolved 2026-09-08 via `/grilling` + `/domain-modeling`. See ADR
+[0001-localstorage-persistence-schema](../../../docs/adr/0001-localstorage-persistence-schema.md)
+for the persistence-architecture decision + rationale.
+
+1. **Project relationship** — every Thread belongs to exactly one Project; auto **"Unfiled"**
+   default Project (non-deletable/non-renameable); **flat**, no nesting.
+2. **Entity shapes & ids** — **nanoid** IDs (opaque, never reused); `createdAt`/`updatedAt`
+   epoch-millis on all entities; order held as **ID-arrays on the parent**
+   (`Project.threadIds`, `Thread.postIds`).
+3. **Key layout** — **per-collection keys**, each an `id → entity` map:
+   `tt:projects`, `tt:threads`, `tt:posts`, `tt:templates`, `tt:settings`,
+   `tt:symbols` (`{favorites, recents}`), `tt:meta` (`{schemaVersion}`). A save rewrites only
+   the touched collection. (Considered single-blob and per-entity `tt:post:<id>`; per-collection
+   chosen — collection-rewrite cost is negligible at realistic scale under the debounce.)
+4. **Versioning / migration** — `schemaVersion` in `tt:meta` (starts at 1); boot-time
+   **sequential migration runner** (no-op at v1); pre-migration backup snapshot
+   (`tt:backup:v<n>`); refuse to migrate *down* on a newer-than-code store.
+5. **Export/import** — single **superset round-trip** JSON
+   (`{format, schemaVersion, exportedAt, data{projects,threads,posts,templates,settings,symbols}}`);
+   import is **replace-with-confirm**; imported files run through the migration runner.
+   Merge semantics → fog.
+6. **Auto-save** — **250 ms** debounce per touched entity; flush on
+   `visibilitychange`/`beforeunload`; in-memory working copy is authoritative, localStorage is
+   the sync target; read once on load.
+7. **Quota** — try/catch `QuotaExceededError`; warn + preserve in-memory + push user to export;
+   **never auto-delete user content**; cap `symbols.recents` at **50**.

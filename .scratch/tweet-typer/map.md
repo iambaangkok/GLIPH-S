@@ -58,6 +58,14 @@ Hierarchy: **Project › Thread › Post.**
   cleanly wires the global limit and returns `weightedLength`/`valid`/`permillage`. ~50–80 kB
   gz (twemoji-parser dominates), acceptable. Watch: half-width katakana & most glyphs above
   U+10FF weigh **2** (halves effective limit for symbol-heavy posts); emoji ZWJ needs v3 config.
+- [localStorage schema & persistence](../issues/03-localstorage-schema.md) — per-collection
+  keys (`tt:projects/threads/posts/templates/settings/symbols/meta`), normalized `id→entity`
+  maps with order as parent-held ID-arrays; nanoid ids + created/updated epoch-millis; flat
+  Project›Thread›Post with a mandatory single Project + non-deletable "Unfiled" default;
+  `schemaVersion` + boot migration runner (backup, no down-migrate); superset round-trip
+  export with replace-on-import; 250 ms debounced auto-save flushed on hide/unload; quota =
+  warn+preserve+export (never auto-delete), Recents capped at 50. See
+  [ADR-0001](../../../docs/adr/0001-localstorage-persistence-schema.md).
 - [Curate the sci-fi/techwear symbol dataset](../issues/02-scifi-symbol-dataset.md) — 649
   verified glyphs across 8 categories (CJK brackets, half-width katakana, box-drawing & blocks,
   geometric shapes, technical/APL, arrows, warning/status, math/logic). All BMP, no surrogate
@@ -74,8 +82,8 @@ Fog — graduates into sharp tickets as the decisions above resolve:
   "Open in X"; JSON export/import.
 - Whole-thread **template skeletons** (MVP ships snippet templates only).
 - **Per-thread** char-limit override (MVP ships a single global limit).
-- Project sub-questions if not fully settled in #3: mandatory Project membership, a default
-  "Unfiled" Project, Project nesting.
+- **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,
+  later feature — surfaced while resolving #3).
 
 ## Out of scope
 
