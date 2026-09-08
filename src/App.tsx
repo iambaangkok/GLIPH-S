@@ -77,7 +77,7 @@ export default function App() {
             letterSpacing: '0.18em',
           }}
         >
-          Tweet·Typer
+          GLIPH-S
         </span>
         <div style={{ flex: 1 }} />
         {/* char-limit readout + settings/misc popover (import/export) — ticket 13 */}

@@ -1,0 +1,359 @@
+<!doctype html>
+<!--
+  PROTOTYPE — throwaway. Ticket #17 (mobile/tablet responsive layout).
+  Three structurally-different takes on the <768 mobile layout + the ~768-1080
+  tablet band, so the fuzzy interaction decisions can be reacted to before build #18.
+
+  Open in a browser. Switch variants with the floating bottom bar or ← / → keys.
+  Each variant renders three framed mocks:
+    1. Mobile portrait — default view + bottom nav
+    2. Mobile portrait — Editor with the 2-row above-keyboard symbol strip + keyboard
+    3. Tablet / phone-landscape ~820px — the awkward middle band
+
+  The three questions each variant answers differently:
+    Q1 Templates — 4th bottom-tab, or nested inside Threads?
+    Q2 Full Symbol/Styles browser — its own tab, or expand-to-sheet from the strip?
+    Q3 Tablet ~768-1080 — collapsible right panel, or accept the cramped 3-pane?
+
+  NOT the real app — static grey-box mock in the V7.4 "Kinetic Mono / Instrument" theme.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>#17 — mobile responsive mock</title>
+<style>
+  :root {
+    --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db;
+    --muted:#8b8577; --line:#2d2a23; --warn:#e8a13c; --sel:rgba(239,233,219,.10);
+    --over:rgba(232,161,60,.20); --radius:6px;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --body:'Space Grotesk','Inter',system-ui,sans-serif;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:#0b0a08; color:var(--fg); font-family:var(--body);
+    padding:28px 20px 100px;
+  }
+  h1 { font-size:15px; letter-spacing:.06em; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:12px; margin:0 0 6px; font-family:var(--mono); }
+  .qline { color:var(--muted); font-size:12px; margin:2px 0 22px; max-width:900px; line-height:1.5; }
+  .qline b { color:var(--warn); font-weight:600; }
+  .stage { display:flex; flex-wrap:wrap; gap:34px; align-items:flex-start; }
+  .cap { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+         color:var(--muted); margin:0 0 8px; }
+  .note { font-family:var(--mono); font-size:10.5px; color:var(--warn); max-width:230px;
+          line-height:1.5; margin-top:10px; }
+
+  /* device frames */
+  .phone { width:300px; height:600px; border:1px solid var(--line); border-radius:22px;
+           background:var(--surface-2); overflow:hidden; position:relative; display:flex;
+           flex-direction:column; box-shadow:0 0 0 6px #000, 0 14px 40px rgba(0,0,0,.6); }
+  .tablet { width:560px; height:440px; border:1px solid var(--line); border-radius:12px;
+            background:var(--surface-2); overflow:hidden; display:flex; flex-direction:column;
+            box-shadow:0 0 0 6px #000, 0 14px 40px rgba(0,0,0,.6); }
+
+  /* shared chrome */
+  .top { height:34px; flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:0 12px;
+         background:var(--surface-2); border-bottom:1px solid var(--line);
+         font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase;
+         color:var(--muted); }
+  .brand { color:var(--warn); font-weight:700; letter-spacing:.16em; }
+  .spacer { flex:1; }
+  .limit { color:var(--fg); }
+  .cog { color:var(--muted); }
+
+  .body { flex:1; overflow:hidden; position:relative; display:flex; flex-direction:column;
+          background:var(--bg); }
+
+  /* bottom tab bar */
+  .tabbar { flex:0 0 auto; height:52px; display:flex; border-top:1px solid var(--line);
+            background:var(--surface); }
+  .tab { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+         gap:3px; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase;
+         color:var(--muted); border-right:1px solid var(--line); }
+  .tab:last-child { border-right:0; }
+  .tab .ic { font-size:15px; line-height:1; }
+  .tab.on { color:var(--warn); background:var(--sel); }
+
+  /* generic pane content */
+  .pane { flex:1; overflow:auto; padding:12px; }
+  .plabel { font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase;
+            color:var(--muted); margin:0 0 8px; display:flex; align-items:center; gap:6px; }
+  .row { padding:9px 10px; border:1px solid var(--line); border-radius:var(--radius);
+         margin-bottom:7px; font-size:12px; background:var(--surface); display:flex; align-items:center; gap:8px; }
+  .row.sel { border-color:var(--warn); background:var(--sel); }
+  .row .mut { color:var(--muted); font-size:10px; margin-left:auto; font-family:var(--mono); }
+  .seg { display:flex; margin-bottom:12px; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+  .seg span { flex:1; text-align:center; padding:6px; font-family:var(--mono); font-size:9px;
+              letter-spacing:.1em; text-transform:uppercase; color:var(--muted); border-right:1px solid var(--line); }
+  .seg span:last-child { border-right:0; }
+  .seg span.on { background:var(--sel); color:var(--warn); }
+
+  /* editor */
+  .post { border:1px solid var(--line); border-radius:var(--radius); background:var(--surface);
+          padding:10px; margin-bottom:10px; }
+  .post .txt { font-size:12.5px; line-height:1.55; min-height:60px; }
+  .post .txt .over { background:var(--over); }
+  .gauge { height:4px; background:var(--line); border-radius:2px; margin-top:9px; position:relative; }
+  .gauge::after { content:''; position:absolute; left:0; top:0; bottom:0; width:62%;
+                  background:var(--warn); border-radius:2px; }
+  .pfoot { display:flex; gap:6px; margin-top:9px; }
+  .chip { min-height:30px; display:inline-flex; align-items:center; padding:0 11px; border-radius:20px;
+          border:1px solid var(--line); font-family:var(--mono); font-size:9px; color:var(--muted);
+          letter-spacing:.08em; }
+
+  /* above-keyboard strip */
+  .strip { flex:0 0 auto; background:var(--surface); border-top:1px solid var(--line);
+           padding:6px 8px; }
+  .strip .srow { display:flex; gap:6px; margin-bottom:5px; }
+  .strip .srow:last-child { margin-bottom:0; }
+  .glyph { width:30px; height:30px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+           border:1px solid var(--line); border-radius:5px; font-family:var(--mono); font-size:13px;
+           background:var(--surface-2); }
+  .glyph.lbl { color:var(--muted); font-size:8px; letter-spacing:.08em; width:auto; padding:0 7px; }
+  .glyph.exp { color:var(--warn); border-color:var(--warn); margin-left:auto; }
+  .kbd { flex:0 0 auto; height:150px; background:var(--surface-2); border-top:1px solid var(--line);
+         display:flex; flex-direction:column; gap:5px; padding:8px 5px; }
+  .krow { display:flex; gap:4px; justify-content:center; flex:1; }
+  .key { flex:1; background:var(--surface); border:1px solid var(--line); border-radius:4px;
+         display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); }
+
+  /* symbol full browser */
+  .searchbox { border:1px solid var(--line); border-radius:var(--radius); padding:7px 9px; font-size:11px;
+               color:var(--muted); font-family:var(--mono); margin-bottom:10px; }
+  .chips-cat { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+  .catchip { padding:4px 9px; border:1px solid var(--line); border-radius:20px; font-family:var(--mono);
+             font-size:8.5px; color:var(--muted); letter-spacing:.06em; }
+  .catchip.on { color:var(--warn); border-color:var(--warn); }
+  .ggrid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; }
+  .ggrid .glyph { width:auto; }
+
+  /* bottom sheet overlay */
+  .sheet { position:absolute; left:0; right:0; bottom:0; background:var(--surface);
+           border-top:1px solid var(--warn); border-radius:12px 12px 0 0; padding:10px 12px 14px;
+           box-shadow:0 -12px 30px rgba(0,0,0,.5); max-height:78%; overflow:auto; }
+  .sheet .grab { width:34px; height:3px; background:var(--line); border-radius:2px; margin:0 auto 10px; }
+  .sheettabs { display:flex; gap:6px; margin-bottom:10px; }
+  .sheettab { flex:1; text-align:center; padding:6px; border:1px solid var(--line); border-radius:var(--radius);
+              font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
+  .sheettab.on { color:var(--warn); border-color:var(--warn); background:var(--sel); }
+
+  /* settings sheet */
+  .setsheet { position:absolute; left:0; right:0; top:34px; background:var(--surface);
+              border-bottom:1px solid var(--warn); padding:12px; box-shadow:0 12px 30px rgba(0,0,0,.5); }
+  .field { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:11px; color:var(--muted); font-family:var(--mono); }
+  .field .box { min-width:70px; padding:7px; border:1px solid var(--line); border-radius:var(--radius); color:var(--fg); }
+
+  /* tablet 3-pane */
+  .tp { flex:1; display:grid; overflow:hidden; }
+  .tp.cramped { grid-template-columns:180px 1fr 200px; }
+  .tp.collapsed { grid-template-columns:180px 1fr 40px; }
+  .tp > div { overflow:auto; border-right:1px solid var(--line); }
+  .tp > div:last-child { border-right:0; }
+  .railcol { display:flex; flex-direction:column; align-items:center; padding-top:10px; gap:12px;
+             background:var(--surface); }
+  .railcol .v { writing-mode:vertical-rl; font-family:var(--mono); font-size:9px; letter-spacing:.14em;
+                text-transform:uppercase; color:var(--warn); }
+  .railcol .ic { font-size:14px; color:var(--muted); }
+
+  /* switcher */
+  .switcher { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:99;
+    display:flex; align-items:center; gap:14px; background:#000; border:1px solid var(--warn);
+    border-radius:30px; padding:9px 16px; box-shadow:0 8px 30px rgba(0,0,0,.7); font-family:var(--mono); }
+  .switcher button { background:none; border:0; color:var(--warn); font-size:18px; cursor:pointer; line-height:1; }
+  .switcher .vlabel { font-size:11px; letter-spacing:.06em; color:var(--fg); min-width:230px; text-align:center; }
+  .switcher .vlabel b { color:var(--warn); }
+</style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <div class="switcher">
+    <button id="prev" title="prev (←)">◄</button>
+    <div class="vlabel" id="vlabel"></div>
+    <button id="next" title="next (→)">►</button>
+  </div>
+
+<script>
+// ── shared fragments ──────────────────────────────────────────────
+const top = (limit='280', extra='') => `
+  <div class="top"><span class="brand">TWEET·TYPER</span>${extra}
+    <span class="spacer"></span><span class="limit">${limit}</span><span class="cog">⚙</span></div>`;
+
+const tab = (ic, name, on) => `<div class="tab ${on?'on':''}"><span class="ic">${ic}</span>${name}</div>`;
+
+const threadsPane = (withTemplatesSeg) => `
+  <div class="pane">
+    ${withTemplatesSeg ? `<div class="seg"><span class="on">Threads</span><span>Templates</span></div>`:''}
+    <div class="plabel">Projects</div>
+    <div class="row sel">◇ Launch copy <span class="mut">3 posts</span></div>
+    <div class="row">◇ Bio drafts <span class="mut">1</span></div>
+    <div class="row">＋ new thread</div>
+    ${!withTemplatesSeg ? `<div class="plabel" style="margin-top:14px">Templates</div>
+      <div class="row">⧉ CTA footer</div><div class="row">⧉ Signature</div>`:''}
+  </div>`;
+
+const templatesPane = () => `
+  <div class="pane">
+    <div class="plabel">Templates</div>
+    <div class="row sel">⧉ CTA footer <span class="mut">copy</span></div>
+    <div class="row">⧉ Signature <span class="mut">copy</span></div>
+    <div class="row">⧉ Thread intro <span class="mut">copy</span></div>
+    <div class="row">＋ new template</div>
+  </div>`;
+
+const editorPane = () => `
+  <div class="pane">
+    <div class="plabel">Launch copy · Post 1/3</div>
+    <div class="post">
+      <div class="txt">The future is already here ⟨▓⟩ <span class="over">it's just not evenly distributed everywhere yet friend</span></div>
+      <div class="gauge"></div>
+      <div class="pfoot"><span class="chip">⧉ copy</span><span class="chip">↗ 𝕏</span></div>
+    </div>
+    <div class="post"><div class="txt" style="min-height:34px;color:var(--muted)">Post 2 …</div></div>
+  </div>`;
+
+const symbolBrowser = () => `
+  <div class="searchbox">⌕ search glyphs…</div>
+  <div class="chips-cat"><span class="catchip on">Fav</span><span class="catchip">Katakana</span>
+    <span class="catchip">Box</span><span class="catchip">Arrows</span><span class="catchip">Tech</span><span class="catchip">Styles</span></div>
+  <div class="ggrid">
+    ${'▓ ░ ▚ ⟨ ⟩ ◇ ▶ ⚠ ⌁ ┃ ╱ ⬡ ⟡ ⇥ ⌖ ◈ ⊹ ⟢'.split(' ').map(g=>`<div class="glyph">${g}</div>`).join('')}
+  </div>`;
+
+const strip = (expandTo) => `
+  <div class="strip">
+    <div class="srow"><span class="glyph lbl">FAV</span>
+      ${'▓ ░ ⟨ ⟩ ◇ ⚠'.split(' ').map(g=>`<div class="glyph">${g}</div>`).join('')}
+      <div class="glyph exp" title="${expandTo}">${expandTo==='sheet'?'⤢':'▤'}</div></div>
+    <div class="srow"><span class="glyph lbl">REC</span>
+      ${'▶ ┃ ╱ ⌁ ⬡ ▚'.split(' ').map(g=>`<div class="glyph">${g}</div>`).join('')}
+      <div class="glyph exp" style="visibility:hidden">·</div></div>
+  </div>`;
+
+const keyboard = () => `
+  <div class="kbd">
+    <div class="krow">${'qwertyuiop'.split('').map(k=>`<div class="key">${k}</div>`).join('')}</div>
+    <div class="krow">${'asdfghjkl'.split('').map(k=>`<div class="key">${k}</div>`).join('')}</div>
+    <div class="krow"><div class="key">⇧</div>${'zxcvbnm'.split('').map(k=>`<div class="key">${k}</div>`).join('')}<div class="key">⌫</div></div>
+    <div class="krow"><div class="key" style="flex:5">space</div><div class="key" style="flex:2">↵</div></div>
+  </div>`;
+
+const phone = (cap, inner, note='') => `
+  <div><p class="cap">${cap}</p><div class="phone">${inner}</div>${note?`<div class="note">${note}</div>`:''}</div>`;
+
+const tablet = (cap, inner, note='') => `
+  <div><p class="cap">${cap}</p><div class="tablet">${inner}</div>${note?`<div class="note">${note}</div>`:''}</div>`;
+
+// ── VARIANTS ──────────────────────────────────────────────────────
+const VARIANTS = {
+  A: { name: 'Minimal 3-tab · Templates nested · full browser = Symbols tab · collapsible tablet panel',
+    render: () => `
+      <h1>Variant A — Minimal 3-tab</h1>
+      <p class="sub">Q1 nested · Q2 own tab · Q3 collapsible</p>
+      <p class="qline">Bottom bar is just <b>Threads · Editor · Symbols</b>. Templates live inside the
+        Threads segment behind a Threads|Templates toggle (matches today's single left nav). The strip's
+        <b>▤</b> button just <b>jumps to the Symbols tab</b> — one place for the full browser, no sheet.
+        Tablet band: right panel <b>collapses to a rail</b> you tap to expand.</p>
+      <div class="stage">
+        ${phone('portrait · default = Editor', top()+`<div class="body">${editorPane()}</div>`+
+          `<div class="tabbar">${tab('❒','Threads')}${tab('✎','Editor',1)}${tab('◇','Symbols')}</div>`,
+          'Fewest tabs. Templates cost one extra tap (toggle inside Threads).')}
+        ${phone('editor + above-kbd strip', top()+`<div class="body">${editorPane()}</div>`+strip('tab')+keyboard(),
+          'Strip = fav+recent quick-insert. ▤ switches to the Symbols tab for search / categories / Styles.')}
+        ${tablet('~820px tablet — right panel collapsed to rail',
+          top()+`<div class="tp collapsed">
+            <div>${threadsPane(true)}</div>
+            <div class="body">${editorPane()}</div>
+            <div class="railcol"><span class="ic">◇</span><span class="v">Symbols ▸</span></div>
+          </div>`,
+          'Center gets room back. Tap the rail to slide the symbol panel over.')}
+      </div>` },
+
+  B: { name: '4-tab · Templates = own tab · full browser = Symbols tab · cramped-but-honest tablet',
+    render: () => `
+      <h1>Variant B — Everything is a tab (4-tab)</h1>
+      <p class="sub">Q1 own tab · Q2 own tab · Q3 accept 3-pane</p>
+      <p class="qline">Bottom bar gains a 4th segment: <b>Threads · Editor · Symbols · Templates</b>.
+        Flat, discoverable, every top-level thing is one tap. The strip's <b>▤</b> jumps to the Symbols
+        tab. Tablet band: keep the <b>full 3-pane</b> even when tight — no new collapse mechanic to learn.</p>
+      <div class="stage">
+        ${phone('portrait · Templates tab', top()+`<div class="body">${templatesPane()}</div>`+
+          `<div class="tabbar">${tab('❒','Thr')}${tab('✎','Edit')}${tab('◇','Sym')}${tab('⧉','Tmpl',1)}</div>`,
+          'Templates are first-class & one tap. Cost: 4 tabs = tighter, smaller touch targets.')}
+        ${phone('editor + above-kbd strip', top()+`<div class="body">${editorPane()}</div>`+strip('tab')+
+          `<div class="tabbar">${tab('❒','Thr')}${tab('✎','Edit',1)}${tab('◇','Sym')}${tab('⧉','Tmpl')}</div>`,
+          'Note the strip sits above the tab bar too — both visible while typing.')}
+        ${tablet('~820px tablet — full 3-pane, cramped',
+          top()+`<div class="tp cramped">
+            <div>${threadsPane(false)}</div>
+            <div class="body">${editorPane()}</div>
+            <div>${'<div class="pane">'+symbolBrowser()+'</div>'}</div>
+          </div>`,
+          'Center is only ~440px — tight but nothing to learn. Symbols always visible (the core feature).')}
+      </div>` },
+
+  C: { name: 'Editor-centric · 2 tabs · everything = bottom sheets · strip expands to full sheet',
+    render: () => `
+      <h1>Variant C — Editor-centric, sheets</h1>
+      <p class="sub">Q1 sheet · Q2 expand-to-sheet · Q3 collapsible</p>
+      <p class="qline">Writing is the whole screen. Bottom bar is just <b>Threads · Editor</b>. Templates &
+        the full Symbol/Styles browser are <b>bottom sheets</b> — the strip's <b>⤢</b> expands into a
+        full symbol sheet without leaving the editor; templates open from a top-bar <b>⧉</b>. Fewest tabs,
+        most gestures. Tablet: right panel is a collapsible sheet-from-edge.</p>
+      <div class="stage">
+        ${phone('editor + expanded symbol SHEET', top('280','<span class="cog">⧉</span>')+
+          `<div class="body">${editorPane()}
+            <div class="sheet">
+              <div class="grab"></div>
+              <div class="sheettabs"><span class="sheettab on">Symbols</span><span class="sheettab">Styles</span></div>
+              ${symbolBrowser()}
+            </div>
+          </div>`+
+          `<div class="tabbar">${tab('❒','Threads')}${tab('✎','Editor',1)}</div>`,
+          'Strip ⤢ slides this sheet up over the keyboard. Full browser without a tab switch.')}
+        ${phone('editor + collapsed strip (sheet down)', top('280','<span class="cog">⧉</span>')+
+          `<div class="body">${editorPane()}</div>`+strip('sheet')+keyboard(),
+          '⤢ on the strip is the affordance to expand. ⧉ in the top bar opens Templates as a sheet.')}
+        ${tablet('~820px tablet — panel as edge sheet',
+          top('280','<span class="cog">⧉</span>')+`<div class="tp collapsed">
+            <div>${threadsPane(false)}</div>
+            <div class="body">${editorPane()}</div>
+            <div class="railcol"><span class="ic">◇</span><span class="v">Symbols ▸</span></div>
+          </div>`,
+          'Same collapsible-rail idea as A, but symbols open as an overlay sheet, not an inline column.')}
+      </div>` },
+};
+
+// ── switcher wiring ───────────────────────────────────────────────
+const keys = Object.keys(VARIANTS);
+function current() {
+  const p = new URLSearchParams(location.search).get('variant');
+  return keys.includes(p) ? p : 'A';
+}
+function setVariant(k) {
+  const u = new URL(location); u.searchParams.set('variant', k); history.replaceState({}, '', u);
+  render();
+}
+function render() {
+  const k = current();
+  document.getElementById('app').innerHTML = VARIANTS[k].render();
+  document.getElementById('vlabel').innerHTML = `<b>${k}</b> — ${VARIANTS[k].name}`;
+}
+function cycle(d) {
+  const i = keys.indexOf(current());
+  setVariant(keys[(i + d + keys.length) % keys.length]);
+}
+document.getElementById('prev').onclick = () => cycle(-1);
+document.getElementById('next').onclick = () => cycle(1);
+addEventListener('keydown', e => {
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if (e.key === 'ArrowLeft') cycle(-1);
+  if (e.key === 'ArrowRight') cycle(1);
+});
+render();
+</script>
+</body>
+</html>

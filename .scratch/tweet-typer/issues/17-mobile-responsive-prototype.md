@@ -1,7 +1,8 @@
 # Prototype: mobile / tablet responsive layout
 
 Type: prototype
-Status: open
+Status: in-progress
+Assignee: iambaangkok
 Blocked by:
 
 ## Question
