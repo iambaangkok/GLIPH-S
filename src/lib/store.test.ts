@@ -11,6 +11,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   _resetHydration,
+  addFavorite,
   addRecent,
   createPost,
   createProject,
@@ -25,11 +26,13 @@ import {
   importStore,
   moveThread,
   renameProject,
+  reorderFavorite,
   reorderPost,
   reorderTemplate,
   reorderThread,
   updatePost,
   updateSettings,
+  updateUi,
   type StoreState,
 } from './store.ts'
 import { storageGet, StorageKey } from './storage.ts'
@@ -427,6 +430,128 @@ describe('moveThread (drag reorder + cross-project)', () => {
 
     expect(getState().projects[projectId].threadIds).toEqual(before)
     void t2
+  })
+})
+
+describe('reorderFavorite (drag reorder)', () => {
+  it('moves a favorite before another', () => {
+    addFavorite('α')
+    addFavorite('β')
+    addFavorite('γ')
+
+    // Move γ before α → [γ, α, β]
+    reorderFavorite('γ', 'α')
+
+    expect(getState().symbols.favorites).toEqual(['γ', 'α', 'β'])
+  })
+
+  it('appends to the end when beforeSymbol is null', () => {
+    addFavorite('α')
+    addFavorite('β')
+
+    reorderFavorite('α', null)
+
+    expect(getState().symbols.favorites).toEqual(['β', 'α'])
+  })
+
+  it('is a no-op when the symbol is not a favorite', () => {
+    addFavorite('α')
+    reorderFavorite('β', 'α')
+    expect(getState().symbols.favorites).toEqual(['α'])
+  })
+
+  it('is a no-op when nothing actually moves', () => {
+    addFavorite('α')
+    addFavorite('β')
+    // α is already first; dropping it before β leaves order unchanged.
+    reorderFavorite('α', 'β')
+    expect(getState().symbols.favorites).toEqual(['α', 'β'])
+  })
+
+  it('reordered favorites survive a reload', () => {
+    addFavorite('α')
+    addFavorite('β')
+    addFavorite('γ')
+    reorderFavorite('γ', 'α')
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.symbols.favorites).toEqual(['γ', 'α', 'β'])
+  })
+})
+
+describe('UI state (collapse flags + persisted selection)', () => {
+  it('defaults to nothing collapsed / nothing selected', () => {
+    expect(getState().ui).toEqual({
+      favoritesCollapsed: false,
+      recentsCollapsed: false,
+      selectedThreadId: null,
+      selectedTemplateId: null,
+    })
+  })
+
+  it('collapse flags survive a reload', () => {
+    updateUi({ favoritesCollapsed: true, recentsCollapsed: true })
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.ui.favoritesCollapsed).toBe(true)
+    expect(after.ui.recentsCollapsed).toBe(true)
+  })
+
+  it('active selection survives a reload', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Selected thread')
+    updateUi({ selectedThreadId: thread.id, selectedTemplateId: null })
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.ui.selectedThreadId).toBe(thread.id)
+  })
+
+  it('is included in the export/import round-trip', () => {
+    updateUi({ favoritesCollapsed: true })
+    forceFlush()
+    const json = exportStore()
+
+    localStorage.clear()
+    _resetHydration()
+    hydrate()
+    importStore(json)
+
+    expect(getState().ui.favoritesCollapsed).toBe(true)
+  })
+
+  it('import defaults ui when the envelope predates ticket 15', () => {
+    const json = exportStore()
+    const env = JSON.parse(json) as { data: { ui?: unknown } }
+    delete env.data.ui // simulate a pre-ticket-15 export
+
+    localStorage.clear()
+    _resetHydration()
+    hydrate()
+    importStore(JSON.stringify(env))
+
+    expect(getState().ui.favoritesCollapsed).toBe(false)
+    expect(getState().ui.selectedThreadId).toBeNull()
+  })
+
+  it('import drops a selection whose target it did not bring in', () => {
+    // Persist a selection pointing at a thread id, then import an envelope that
+    // has no such thread — the dangling id must not survive.
+    updateUi({ selectedThreadId: 'ghost-thread' })
+    forceFlush()
+    const json = exportStore()
+    // exportStore captured the ghost id; strip the thread map so it can't resolve.
+    const env = JSON.parse(json) as { data: { threads: Record<string, unknown> } }
+    env.data.threads = {}
+
+    localStorage.clear()
+    _resetHydration()
+    hydrate()
+    importStore(JSON.stringify(env))
+
+    expect(getState().ui.selectedThreadId).toBeNull()
   })
 })
 

@@ -26,7 +26,7 @@
  * panel stays monochrome — favorites use the cream accent, not amber).
  */
 
-import { useState, type CSSProperties, type JSX } from 'react'
+import { useState, type CSSProperties, type DragEvent, type JSX } from 'react'
 
 import { useStore } from './lib/StoreContext.tsx'
 import { useInsertion } from './lib/InsertionContext.tsx'
@@ -37,6 +37,7 @@ import {
   type SymbolGlyph,
 } from './lib/symbols.ts'
 import { STYLES, applyStyle } from './lib/styles.ts'
+import { FAVORITE_MIME, dropHalf, dropShadow, type DropHalf } from './lib/dnd.ts'
 
 type Tab = 'symbols' | 'styles'
 
@@ -68,6 +69,11 @@ const isCjk = (ch: string) => /[　-ヿ＀-￯]/.test(ch)
  * (shown on hover, or always when favorited) toggles the favorite without
  * inserting. Both use onMouseDown+preventDefault to keep editor focus. Hovering
  * reports the glyph up so the panel can show its name.
+ *
+ * In the Favorites grid the cell is also drag-reorderable: a `grip` corner-handle
+ * carries the native HTML5 drag. The handle is separate from the insert button on
+ * purpose — the button's onMouseDown+preventDefault (which keeps editor focus)
+ * would otherwise cancel the drag.
  */
 function GlyphCell({
   glyph,
@@ -75,12 +81,18 @@ function GlyphCell({
   onInsert,
   onToggleFavorite,
   onHover,
+  grip,
 }: {
   glyph: SymbolGlyph
   favorite: boolean
   onInsert: (char: string) => void
   onToggleFavorite: (char: string) => void
   onHover: (glyph: SymbolGlyph | null) => void
+  /** When present, renders a drag handle wired to these native-DnD callbacks. */
+  grip?: {
+    onDragStart: (e: DragEvent) => void
+    onDragEnd: () => void
+  }
 }): JSX.Element {
   return (
     <div
@@ -102,6 +114,20 @@ function GlyphCell({
         {glyph.char}
       </button>
 
+      {grip && (
+        <span
+          className="glyph-grip"
+          draggable
+          onDragStart={grip.onDragStart}
+          onDragEnd={grip.onDragEnd}
+          onMouseDown={(e) => e.stopPropagation()}
+          aria-label="Drag handle — drag to reorder favorite"
+          title="Drag to reorder"
+        >
+          ⠿
+        </span>
+      )}
+
       <button
         type="button"
         className={`glyph-star${favorite ? ' is-fav' : ''}`}
@@ -119,6 +145,90 @@ function GlyphCell({
   )
 }
 
+// ── FavoritesGrid ─────────────────────────────────────────────────────────────
+
+/**
+ * The Favorites grid — like a plain glyph grid, but each cell is a native-DnD
+ * drop target and carries a drag handle, so favorites can be reordered. The
+ * drop indicator is a horizontal (left/right) accent hairline since the grid
+ * flows in rows.
+ */
+function FavoritesGrid({
+  favorites,
+  favSet,
+  onInsert,
+  onToggleFavorite,
+  onHover,
+  onReorder,
+}: {
+  favorites: string[]
+  favSet: Set<string>
+  onInsert: (char: string) => void
+  onToggleFavorite: (char: string) => void
+  onHover: (glyph: SymbolGlyph | null) => void
+  onReorder: (symbol: string, beforeSymbol: string | null) => void
+}): JSX.Element {
+  const [dragOver, setDragOver] = useState<{ char: string; half: DropHalf } | null>(null)
+  const [dragging, setDragging] = useState<string | null>(null)
+
+  return (
+    <div style={GRID}>
+      {favorites.map((char, i) => {
+        const nextChar = favorites[i + 1] ?? null
+        const over = dragOver?.char === char ? dragOver.half : null
+        return (
+          <div
+            key={char}
+            onDragOver={(e) => {
+              if (!e.dataTransfer.types.includes(FAVORITE_MIME)) return
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'move'
+              setDragOver({ char, half: dropHalf(e, 'x') })
+            }}
+            onDragLeave={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                setDragOver((d) => (d?.char === char ? null : d))
+              }
+            }}
+            onDrop={(e) => {
+              if (!e.dataTransfer.types.includes(FAVORITE_MIME)) return
+              e.preventDefault()
+              const half = over ?? dropHalf(e, 'x')
+              setDragOver(null)
+              const draggedId = e.dataTransfer.getData(FAVORITE_MIME)
+              if (!draggedId || draggedId === char) return
+              const beforeId = half === 'before' ? char : nextChar
+              if (beforeId === draggedId) return
+              onReorder(draggedId, beforeId)
+            }}
+            style={{
+              borderRadius: 'var(--radius)',
+              opacity: dragging === char ? 0.4 : 1,
+              boxShadow: dropShadow(over, 'x'),
+            }}
+          >
+            <GlyphCell
+              glyph={glyphFor(char)}
+              favorite={favSet.has(char)}
+              onInsert={onInsert}
+              onToggleFavorite={onToggleFavorite}
+              onHover={onHover}
+              grip={{
+                onDragStart: (e) => {
+                  e.dataTransfer.setData(FAVORITE_MIME, char)
+                  e.dataTransfer.effectAllowed = 'move'
+                  setDragging(char)
+                },
+                onDragEnd: () => { setDragging(null); setDragOver(null) },
+              }}
+            />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── Section header ──────────────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }): JSX.Element {
@@ -129,11 +239,55 @@ function SectionLabel({ children }: { children: React.ReactNode }): JSX.Element 
   )
 }
 
+/**
+ * A collapsible section header. The whole label is a toggle button; a leading
+ * chevron reflects state (▾ open · ▸ collapsed). Used for Favorites / Recent,
+ * whose collapsed state persists via the `tt:ui` store.
+ */
+function CollapsibleSectionLabel({
+  label,
+  collapsed,
+  onToggle,
+}: {
+  label: string
+  collapsed: boolean
+  onToggle: () => void
+}): JSX.Element {
+  return (
+    <button
+      type="button"
+      className="label-mono"
+      aria-expanded={!collapsed}
+      aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
+      onClick={onToggle}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 5,
+        width: '100%',
+        margin: '10px 0 6px',
+        padding: 0,
+        fontSize: 9,
+        background: 'none',
+        border: 'none',
+        color: 'inherit',
+        cursor: 'pointer',
+        textAlign: 'left',
+      }}
+    >
+      <span style={{ opacity: 0.6, fontSize: 8, width: 8 }}>{collapsed ? '▸' : '▾'}</span>
+      {label}
+    </button>
+  )
+}
+
 // ── Symbols tab ─────────────────────────────────────────────────────────────────
 
 function SymbolsTab(): JSX.Element {
-  const { state, addFavorite, removeFavorite, addRecent } = useStore()
+  const { state, addFavorite, removeFavorite, reorderFavorite, addRecent, updateUi } = useStore()
   const { insertAtCursor } = useInsertion()
+
+  const { favoritesCollapsed, recentsCollapsed } = state.ui
 
   const [query, setQuery] = useState('')
   const [activeCat, setActiveCat] = useState<string>(SYMBOL_CATEGORIES[0].id)
@@ -263,26 +417,43 @@ function SymbolsTab(): JSX.Element {
         })()}
       </div>
 
-      {/* Favorites + Recent — pinned in the fixed header, out of the scroll. */}
+      {/* Favorites + Recent — pinned in the fixed header, out of the scroll.
+          Both sections collapse; the collapsed state persists via tt:ui. */}
       {!searchResults && (
         <>
           {/* Favorites — always present so pinning has a visible home. */}
-          <SectionLabel>Favorites</SectionLabel>
-          {favorites.length > 0 ? (
-            renderGrid(favorites.map(glyphFor), 'fav')
-          ) : (
-            <div
-              className="label-mono"
-              style={{ fontSize: 8.5, opacity: 0.35, marginBottom: 4 }}
-            >
-              — pin glyphs with ★ —
-            </div>
-          )}
+          <CollapsibleSectionLabel
+            label="Favorites"
+            collapsed={favoritesCollapsed}
+            onToggle={() => updateUi({ favoritesCollapsed: !favoritesCollapsed })}
+          />
+          {!favoritesCollapsed &&
+            (favorites.length > 0 ? (
+              <FavoritesGrid
+                favorites={favorites}
+                favSet={favSet}
+                onInsert={handleInsert}
+                onToggleFavorite={handleToggleFavorite}
+                onHover={setHovered}
+                onReorder={reorderFavorite}
+              />
+            ) : (
+              <div
+                className="label-mono"
+                style={{ fontSize: 8.5, opacity: 0.35, marginBottom: 4 }}
+              >
+                — pin glyphs with ★ —
+              </div>
+            ))}
 
           {recents.length > 0 && (
             <>
-              <SectionLabel>Recent</SectionLabel>
-              {renderGrid(recents.map(glyphFor), 'rec')}
+              <CollapsibleSectionLabel
+                label="Recent"
+                collapsed={recentsCollapsed}
+                onToggle={() => updateUi({ recentsCollapsed: !recentsCollapsed })}
+              />
+              {!recentsCollapsed && renderGrid(recents.map(glyphFor), 'rec')}
             </>
           )}
         </>

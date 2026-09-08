@@ -37,6 +37,7 @@ import type {
   TemplateMap,
   Thread,
   ThreadMap,
+  UiState,
 } from './types.ts'
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -60,6 +61,16 @@ function makeBase() {
   return { id: makeId(), createdAt: ts, updatedAt: ts }
 }
 
+/** Default (nothing collapsed, nothing selected) UI state. */
+function emptyUi(): UiState {
+  return {
+    favoritesCollapsed: false,
+    recentsCollapsed: false,
+    selectedThreadId: null,
+    selectedTemplateId: null,
+  }
+}
+
 // ── State ────────────────────────────────────────────────────────────────────
 
 export interface StoreState {
@@ -69,6 +80,7 @@ export interface StoreState {
   templates: TemplateMap
   settings:  Settings
   symbols:   SymbolsStore
+  ui:        UiState
 }
 
 let state: StoreState = {
@@ -78,6 +90,7 @@ let state: StoreState = {
   templates: {},
   settings:  { ...makeBase() },
   symbols:   { favorites: [], recents: [] },
+  ui:        emptyUi(),
 }
 
 // ── Change listeners ──────────────────────────────────────────────────────────
@@ -102,7 +115,7 @@ export function getState(): StoreState {
 
 // ── Dirty-collection tracking + debounced flush ───────────────────────────────
 
-type CollectionKey = 'projects' | 'threads' | 'posts' | 'templates' | 'settings' | 'symbols'
+type CollectionKey = 'projects' | 'threads' | 'posts' | 'templates' | 'settings' | 'symbols' | 'ui'
 
 const dirty = new Set<CollectionKey>()
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -124,6 +137,7 @@ function writeCollection(col: CollectionKey): void {
     templates: StorageKey.templates,
     settings:  StorageKey.settings,
     symbols:   StorageKey.symbols,
+    ui:        StorageKey.ui,
   }
   try {
     storageSet(keyMap[col], state[col])
@@ -231,6 +245,7 @@ export function hydrate(): void {
   const templates = storageGet<TemplateMap>(StorageKey.templates)
   const settings  = storageGet<Settings>(StorageKey.settings)
   const symbols   = storageGet<SymbolsStore>(StorageKey.symbols)
+  const ui        = storageGet<UiState>(StorageKey.ui)
 
   state = {
     projects:  projects  ?? {},
@@ -239,6 +254,7 @@ export function hydrate(): void {
     templates: templates ?? {},
     settings:  settings  ?? { ...makeBase() },
     symbols:   symbols   ?? { favorites: [], recents: [] },
+    ui:        ui        ? { ...emptyUi(), ...ui } : emptyUi(),
   }
 
   // Write schema version if this is a first-ever load.
@@ -260,6 +276,7 @@ export function _resetHydration(): void {
     templates: {},
     settings:  { ...makeBase() },
     symbols:   { favorites: [], recents: [] },
+    ui:        emptyUi(),
   }
   dirty.clear()
   if (debounceTimer !== null) {
@@ -635,6 +652,19 @@ export function updateSettings(patch: Partial<Settings>): Settings {
   return updated
 }
 
+// ── UI state ────────────────────────────────────────────────────────────────
+
+/**
+ * Merge a partial patch into the persisted UI state (collapse flags + active
+ * selection). Callers that touch the active selection are responsible for the
+ * Thread/Template mutual-exclusivity invariant (`SelectionContext` does this).
+ */
+export function updateUi(patch: Partial<UiState>): UiState {
+  const updated = { ...state.ui, ...patch }
+  mutate('ui', () => { state.ui = updated })
+  return updated
+}
+
 // ── Symbols ───────────────────────────────────────────────────────────────────
 
 /**
@@ -659,6 +689,31 @@ export function removeFavorite(symbol: string): void {
       ...state.symbols,
       favorites: state.symbols.favorites.filter((s) => s !== symbol),
     }
+  })
+}
+
+/**
+ * Reorder a favorite so it sits immediately before `beforeSymbol`, or at the end
+ * of the list when `beforeSymbol` is null. Mirrors `reorderTemplate` but on the
+ * flat `symbols.favorites` string array (favorites have no order field — the
+ * array position *is* the order). No-op if the symbol isn't a favorite or nothing
+ * actually moves. Recents stay most-recent-first and are not reorderable.
+ */
+export function reorderFavorite(symbol: string, beforeSymbol: string | null): void {
+  if (symbol === beforeSymbol) return
+  const favs = state.symbols.favorites
+  if (!favs.includes(symbol)) return
+
+  const next = favs.filter((s) => s !== symbol)
+  let insertAt = beforeSymbol === null ? next.length : next.indexOf(beforeSymbol)
+  if (insertAt === -1) insertAt = next.length
+  next.splice(insertAt, 0, symbol)
+
+  // No-op guard — skip the write if nothing actually moved.
+  if (next.length === favs.length && next.every((s, i) => s === favs[i])) return
+
+  mutate('symbols', () => {
+    state.symbols = { ...state.symbols, favorites: next }
   })
 }
 
@@ -692,6 +747,7 @@ export function exportStore(): string {
       templates: state.templates,
       settings:  state.settings,
       symbols:   state.symbols,
+      ui:        state.ui,
     },
   }
   return JSON.stringify(envelope, null, 2)
@@ -728,10 +784,21 @@ export function importStore(json: string): void {
     templates: migrated.data.templates,
     settings:  migrated.data.settings,
     symbols:   migrated.data.symbols,
+    // Older exports (pre-ticket-15) carry no `ui` block — default it.
+    ui:        migrated.data.ui ? { ...emptyUi(), ...migrated.data.ui } : emptyUi(),
   }
 
   // Ensure "Unfiled" invariant is maintained after import.
   ensureUnfiled()
+
+  // Drop a persisted selection that points at data the import didn't bring in,
+  // so a dangling id can't survive the replace.
+  if (state.ui.selectedThreadId && !state.threads[state.ui.selectedThreadId]) {
+    state.ui = { ...state.ui, selectedThreadId: null }
+  }
+  if (state.ui.selectedTemplateId && !state.templates[state.ui.selectedTemplateId]) {
+    state.ui = { ...state.ui, selectedTemplateId: null }
+  }
 
   // Cap recents just in case the import had more than the cap.
   if (state.symbols.recents.length > RECENTS_CAP) {
@@ -750,6 +817,7 @@ export function importStore(json: string): void {
   dirty.add('templates')
   dirty.add('settings')
   dirty.add('symbols')
+  dirty.add('ui')
   flush()
 
   notify()

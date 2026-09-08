@@ -11,6 +11,7 @@
  *   tt:templates — Record<string, Template>
  *   tt:settings  — Settings
  *   tt:symbols   — { favorites: string[]; recents: string[] }
+ *   tt:ui        — { favoritesCollapsed, recentsCollapsed, selected*Id }
  *   tt:meta      — { schemaVersion: number }
  *
  * This module owns ONLY the read/write plumbing (get/set/remove).
@@ -26,6 +27,7 @@ export const StorageKey = {
   templates: 'tt:templates',
   settings:  'tt:settings',
   symbols:   'tt:symbols',
+  ui:        'tt:ui',
   meta:      'tt:meta',
 } as const
 

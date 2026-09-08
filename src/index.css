@@ -161,6 +161,28 @@ body {
   opacity: 1;
   color: var(--accent);
 }
+.glyph-grip {
+  position: absolute;
+  bottom: -5px;
+  left: -5px;
+  width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 8px;
+  line-height: 1;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.1s;
+  z-index: 2;
+}
+.glyph-wrap:hover .glyph-grip {
+  opacity: 1;
+}
 
 /* ── Ruler hairline ─────────────────────────────────────────────────────── */
 .ruler {

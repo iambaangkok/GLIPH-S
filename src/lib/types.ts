@@ -66,9 +66,34 @@ export interface Settings extends Entity {
 
 /** Persisted under `tt:symbols`. Recents is capped at 24. */
 export interface SymbolsStore {
+  /** User-ordered (drag-reorderable via `reorderFavorite`); insertion-appended. */
   favorites: string[]
   /** Insertion-ordered; most-recent first; capped at 24. */
   recents: string[]
+}
+
+// ── UI store ─────────────────────────────────────────────────────────────────
+
+/**
+ * Persisted UI state under `tt:ui` (ticket 15). Distinct from `settings` (user
+ * preferences like char-limit) — this is interaction/view state that should
+ * survive a reload: which side-panel sections are collapsed, and what the
+ * center pane was last editing.
+ *
+ * The active selection is mutually exclusive (a Thread *or* a Template, never
+ * both) — the same invariant `SelectionContext` enforces at runtime. On boot the
+ * stored id is validated against the live store; a dangling id (deleted, or gone
+ * after an import) re-hydrates to null.
+ */
+export interface UiState {
+  /** Symbol-panel Favorites section collapsed? */
+  favoritesCollapsed: boolean
+  /** Symbol-panel Recent section collapsed? */
+  recentsCollapsed: boolean
+  /** Last-active Thread (mutually exclusive with `selectedTemplateId`). */
+  selectedThreadId: string | null
+  /** Last-active Template (mutually exclusive with `selectedThreadId`). */
+  selectedTemplateId: string | null
 }
 
 // ── Normalized collection maps ────────────────────────────────────────────────
@@ -91,5 +116,6 @@ export interface ExportEnvelope {
     templates: TemplateMap
     settings:  Settings
     symbols:   SymbolsStore
+    ui:        UiState
   }
 }

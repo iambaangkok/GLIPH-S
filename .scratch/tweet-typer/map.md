@@ -189,6 +189,20 @@ Hierarchy: **Project › Thread › Post.**
   export/import — already shipped in #13.) Verified: `pnpm build` clean, `pnpm test` 52/52, `oxlint src/`
   exit 0; not committed.
 
+- [Collapsible Favorites/Recents + persist collapse & active selection + drag-reorder Favorites](../issues/15-collapsible-persist-selection-reorder-favorites.md) —
+  UI/interaction state moved into a **new persisted `tt:ui` store** (not folded into `settings`):
+  `{ favoritesCollapsed, recentsCollapsed, selectedThreadId, selectedTemplateId }`, wired through the
+  store layer like every collection (`StorageKey.ui`, `emptyUi()` seed with forward-merge on hydrate,
+  `updateUi()` API, and the export envelope). Symbol-panel Favorites/Recent are now collapsible
+  (`CollapsibleSectionLabel`, chevron) with the flag persisted. **`SelectionContext` is no longer
+  ephemeral** — it seeds from `tt:ui` **validated against the live store**, mirrors every set back
+  (keeping Thread/Template mutual exclusivity), and drops a dangling selection on delete/replace-import
+  (guarded in both `SelectionContext` and `importStore`). Favorites drag-reorder via new
+  `reorderFavorite(symbol, beforeSymbol)` + `FAVORITE_MIME` + an `axis` param on `dropHalf`/`dropShadow`
+  (grid → left/right indicator); `GlyphCell` got a separate corner drag grip so the insert button's
+  `onMouseDown`+`preventDefault` doesn't cancel the drag. Recents stay most-recent-first. Verified:
+  `pnpm test` **63/63**, `pnpm build` clean, `oxlint src/` exit 0; not committed.
+
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
@@ -196,9 +210,10 @@ Fog — graduates into sharp tickets as the decisions above resolve:
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14, and
   every one of 07–14 is now resolved** (07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter,
   11 symbol browser+Styles, 12 templates, 13 settings/import-export, 14 copy+Open-in-X). The original
-  MVP execution set is complete; later polish/UX lives in tickets 15–16. Seams live: `useSelection()`
-  (`src/lib/SelectionContext.tsx`,
-  active thread) and the **cursor-aware insertion seam** `useInsertion()` in
+  MVP execution set is complete; later polish/UX lives in tickets 15–16 — **15 now resolved**, leaving
+  **16 (responsive mobile layout)** as the only open child. Seams live: `useSelection()`
+  (`src/lib/SelectionContext.tsx`, active thread — **now persisted to the `tt:ui` store** added by 15)
+  and the **cursor-aware insertion seam** `useInsertion()` in
   `src/lib/InsertionContext.tsx` — `insertAtCursor()` (established by 10) **plus `transformSelection()`
   (added by 11** for in-place selection restyle). **12 put Templates in the left nav and made a template
   edit in the center pane like a Post** — extracting the shared editing surface into

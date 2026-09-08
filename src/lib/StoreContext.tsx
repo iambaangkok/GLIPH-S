@@ -39,6 +39,7 @@ import {
   onQuotaWarning,
   removeFavorite,
   renameProject,
+  reorderFavorite,
   reorderPost,
   reorderTemplate,
   reorderThread,
@@ -47,6 +48,7 @@ import {
   updateSettings,
   updateTemplate,
   updateThread,
+  updateUi,
   type QuotaWarning,
   type StoreState,
 } from './store.ts'
@@ -86,10 +88,14 @@ export interface StoreAPI {
   // Settings
   updateSettings: typeof updateSettings
 
+  // UI state (collapse flags + persisted active selection)
+  updateUi: typeof updateUi
+
   // Symbols
-  addFavorite:    typeof addFavorite
-  removeFavorite: typeof removeFavorite
-  addRecent:      typeof addRecent
+  addFavorite:     typeof addFavorite
+  removeFavorite:  typeof removeFavorite
+  reorderFavorite: typeof reorderFavorite
+  addRecent:       typeof addRecent
 
   // Export / Import
   exportStore: typeof exportStore
@@ -147,8 +153,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     deleteTemplate,
     reorderTemplate,
     updateSettings,
+    updateUi,
     addFavorite,
     removeFavorite,
+    reorderFavorite,
     addRecent,
     exportStore,
     importStore,
