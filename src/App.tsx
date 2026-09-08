@@ -10,9 +10,13 @@
  *   └──────────────┴───────────────────────────┴───────────────┘
  *
  * All panes are empty placeholders — downstream tickets fill them in.
+ * The <StoreProvider> is live here; panes consume via useStore().
  */
+import { StoreProvider } from './lib/StoreContext.tsx'
+
 export default function App() {
   return (
+    <StoreProvider>
     <div
       style={{
         display: 'grid',
@@ -271,5 +275,6 @@ export default function App() {
         </div>
       </aside>
     </div>
+    </StoreProvider>
   )
 }

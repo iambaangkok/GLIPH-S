@@ -102,15 +102,24 @@ Hierarchy: **Project › Thread › Post.**
   `src/index.css` (seeded from the prototype). Variant-A 3-pane shell with empty panes in
   `src/App.tsx`; thin `tt:`-namespaced localStorage layer skeleton in `src/lib/storage.ts`
   (`SCHEMA_VERSION = 1`). `tsc -b && vite build` clean; `pnpm dev` on :5173. Unblocks 08–14.
+- [localStorage persistence layer](../issues/08-persistence-layer.md) — full store built on the
+  `tt:` primitives: normalized in-memory working copy (authoritative; localStorage read once on
+  `hydrate()`), typed CRUD API + `StoreProvider`/`useStore()` React binding (App wrapped),
+  nanoid ids + created/updated ms, "Unfiled" default project seeded & non-deletable/non-renameable,
+  boot migration runner (no-op@v1, backup, no down-migrate), 250 ms debounced per-collection flush
+  on hide/unload, quota = warn+preserve via `onQuotaWarning` (never drops), recents cap 50, superset
+  `exportStore()`/replace-`importStore()`. Verified: `pnpm test` 20/20, `pnpm build` clean, oxlint 0.
+  New: `src/lib/{types,migrate,store,store.test}.ts` + `StoreContext.tsx`; vitest+jsdom devDeps.
 
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14.**
-  **07 scaffold+tokens is now resolved**, unblocking the rest: 08 persistence; then 09 navigator,
-  10 editor+counter, 11 symbol browser+Styles, 12 templates, 13 settings/import-export, 14 copy+Open-in-X.
-  The frontier now leads with **08 persistence** (still blocks 09–14).
+  **07 scaffold+tokens and 08 persistence are now resolved.** With the store live, the frontier
+  opens to the pane tickets — **09 navigator, 10 editor+counter, 11 symbol browser+Styles,
+  12 templates, 13 settings/import-export, 14 copy+Open-in-X** — all unblocked and independently
+  takeable (they consume `useStore()`; no ordering forced among them).
 - Whole-thread **template skeletons** (MVP ships snippet templates only).
 - **Per-thread** char-limit override (MVP ships a single global limit).
 - **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,

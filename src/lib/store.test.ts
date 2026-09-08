@@ -1,0 +1,281 @@
+/**
+ * Focused round-trip tests for the Tweet Typer persistence layer.
+ *
+ * Asserts:
+ *   1. Entities survive a simulated reload (write → re-hydrate → read).
+ *   2. "Unfiled" project is seeded on first load and remains non-deletable/renameable.
+ *   3. symbols.recents is capped at 50.
+ *   4. export→import replace round-trip preserves all data.
+ */
+
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import {
+  _resetHydration,
+  addRecent,
+  createPost,
+  createProject,
+  createTemplate,
+  createThread,
+  deleteProject,
+  exportStore,
+  forceFlush,
+  getDefaultProjectId,
+  getState,
+  hydrate,
+  importStore,
+  renameProject,
+  updatePost,
+  updateSettings,
+  type StoreState,
+} from './store.ts'
+import { storageGet, StorageKey } from './storage.ts'
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Simulate a full app reload: flush → reset → re-hydrate. */
+function simulateReload(): StoreState {
+  forceFlush()
+  _resetHydration()
+  hydrate()
+  return getState()
+}
+
+// ── Setup / teardown ──────────────────────────────────────────────────────────
+
+beforeEach(() => {
+  localStorage.clear()
+  _resetHydration()
+  hydrate()
+})
+
+afterEach(() => {
+  forceFlush()
+  localStorage.clear()
+  _resetHydration()
+})
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+describe('Unfiled seeding invariant', () => {
+  it('seeds exactly one default Project named "Unfiled" on first load', () => {
+    const projects = Object.values(getState().projects)
+    expect(projects).toHaveLength(1)
+    expect(projects[0].name).toBe('Unfiled')
+    expect(projects[0].isDefault).toBe(true)
+  })
+
+  it('does not seed a second Unfiled on reload', () => {
+    const after = simulateReload()
+    const defaults = Object.values(after.projects).filter((p) => p.isDefault)
+    expect(defaults).toHaveLength(1)
+  })
+
+  it('Unfiled cannot be deleted', () => {
+    const id = getDefaultProjectId()
+    expect(() => deleteProject(id)).toThrow('Cannot delete the default Unfiled project')
+  })
+
+  it('Unfiled cannot be renamed', () => {
+    const id = getDefaultProjectId()
+    expect(() => renameProject(id, 'My Projects')).toThrow(
+      'Cannot rename the default Unfiled project',
+    )
+  })
+})
+
+describe('Entity round-trip through localStorage (reload survival)', () => {
+  it('Projects survive a reload', () => {
+    const p = createProject('Science')
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.projects[p.id]).toBeDefined()
+    expect(after.projects[p.id].name).toBe('Science')
+  })
+
+  it('Threads survive a reload', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'My Thread')
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.threads[thread.id]).toBeDefined()
+    expect(after.threads[thread.id].title).toBe('My Thread')
+    // Parent threadIds updated
+    expect(after.projects[projectId].threadIds).toContain(thread.id)
+  })
+
+  it('Posts survive a reload', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Thread 1')
+    const post = createPost(thread.id, 'Hello world')
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.posts[post.id]).toBeDefined()
+    expect(after.posts[post.id].content).toBe('Hello world')
+    expect(after.threads[thread.id].postIds).toContain(post.id)
+  })
+
+  it('Post content updates survive a reload', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'T')
+    const post = createPost(thread.id, 'Original')
+    updatePost(post.id, 'Updated content')
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.posts[post.id].content).toBe('Updated content')
+  })
+
+  it('Templates survive a reload', () => {
+    const t = createTemplate('Intro', 'Hello, {{name}}!')
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.templates[t.id]).toBeDefined()
+    expect(after.templates[t.id].content).toBe('Hello, {{name}}!')
+  })
+
+  it('Settings survive a reload', () => {
+    updateSettings({ theme: 'dark' })
+    forceFlush()
+
+    const after = simulateReload()
+    expect((after.settings as Record<string, unknown>)['theme']).toBe('dark')
+  })
+
+  it('localStorage actually contains the data after flush', () => {
+    const projectId = getDefaultProjectId()
+    createThread(projectId, 'Persisted thread')
+    forceFlush()
+
+    const raw = storageGet<Record<string, unknown>>(StorageKey.threads)
+    expect(raw).not.toBeNull()
+    expect(Object.keys(raw ?? {})).toHaveLength(1)
+  })
+})
+
+describe('symbols.recents cap at 50', () => {
+  it('caps recents at 50 entries', () => {
+    // Add 60 unique symbols
+    for (let i = 0; i < 60; i++) {
+      addRecent(`sym-${i}`)
+    }
+    const { recents } = getState().symbols
+    expect(recents).toHaveLength(50)
+    // Most-recent first
+    expect(recents[0]).toBe('sym-59')
+  })
+
+  it('deduplicates: re-adding an existing symbol moves it to front', () => {
+    addRecent('A')
+    addRecent('B')
+    addRecent('C')
+    addRecent('A') // re-add A
+    const { recents } = getState().symbols
+    expect(recents[0]).toBe('A')
+    expect(recents.filter((s) => s === 'A')).toHaveLength(1)
+  })
+
+  it('recents survive a reload', () => {
+    addRecent('★')
+    addRecent('♥')
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.symbols.recents).toContain('★')
+    expect(after.symbols.recents[0]).toBe('♥') // most-recent first
+  })
+})
+
+describe('export → import replace round-trip', () => {
+  it('full export→import round-trip preserves all collections', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Export test thread')
+    const post = createPost(thread.id, 'Post content')
+    const template = createTemplate('T1', 'Template body')
+    updateSettings({ lang: 'en' })
+    addRecent('∑')
+    forceFlush()
+
+    const json = exportStore()
+    const envelope = JSON.parse(json) as Record<string, unknown>
+
+    // Envelope shape
+    expect(envelope['format']).toBe('tweet-typer-export')
+    expect(envelope['schemaVersion']).toBe(1)
+    expect(typeof envelope['exportedAt']).toBe('number')
+
+    // Clear everything and import.
+    localStorage.clear()
+    _resetHydration()
+    hydrate()
+
+    // Now the store has only the seeded Unfiled (fresh state).
+    importStore(json)
+
+    const after = getState()
+    expect(after.threads[thread.id]).toBeDefined()
+    expect(after.posts[post.id].content).toBe('Post content')
+    expect(after.templates[template.id].name).toBe('T1')
+    expect((after.settings as Record<string, unknown>)['lang']).toBe('en')
+    expect(after.symbols.recents).toContain('∑')
+  })
+
+  it('import re-seeds Unfiled if the imported data has no default project', () => {
+    // Export a state where we manually strip isDefault (unlikely in practice but defensive).
+    const projectId = getDefaultProjectId()
+    const json = exportStore()
+    const env = JSON.parse(json) as {
+      data: { projects: Record<string, { isDefault: boolean }> }
+    }
+    env.data.projects[projectId].isDefault = false
+    const mangled = JSON.stringify(env)
+
+    localStorage.clear()
+    _resetHydration()
+    hydrate()
+    importStore(mangled)
+
+    const defaults = Object.values(getState().projects).filter((p) => p.isDefault)
+    expect(defaults).toHaveLength(1)
+  })
+
+  it('import throws on bad JSON', () => {
+    expect(() => importStore('not json')).toThrow('Import failed: invalid JSON')
+  })
+
+  it('import throws on wrong format', () => {
+    expect(() =>
+      importStore(JSON.stringify({ format: 'other', schemaVersion: 1, exportedAt: 0, data: {} })),
+    ).toThrow('unrecognised format')
+  })
+
+  it('import throws if schema version is newer than code', () => {
+    const json = exportStore()
+    const env = JSON.parse(json) as { schemaVersion: number }
+    env.schemaVersion = 999
+    expect(() => importStore(JSON.stringify(env))).toThrow('newer than code')
+  })
+
+  it('imported recents are capped at 50', () => {
+    // Build a state with 80 recents and export it.
+    for (let i = 0; i < 80; i++) addRecent(`s${i}`)
+    // Manually jam 80 into the exported envelope.
+    const json = exportStore()
+    const env = JSON.parse(json) as {
+      data: { symbols: { recents: string[] } }
+    }
+    // exportStore itself already caps at 50 from addRecent, so set manually:
+    env.data.symbols.recents = Array.from({ length: 80 }, (_, i) => `x${i}`)
+    const padded = JSON.stringify(env)
+
+    localStorage.clear()
+    _resetHydration()
+    hydrate()
+    importStore(padded)
+
+    expect(getState().symbols.recents).toHaveLength(50)
+  })
+})
