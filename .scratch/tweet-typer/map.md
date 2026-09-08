@@ -164,6 +164,18 @@ Hierarchy: **Project › Thread › Post.**
   src/` exit 0, `pnpm test` **52/52** (+9 for moveThread/reorderTemplate); not committed. Files:
   `Navigator.tsx`, `TemplateEditor.tsx` (new), `WeightedTextEditor.tsx` (new), `ThreadEditor.tsx`,
   `SelectionContext.tsx`, `types.ts`, `store.ts`, `StoreContext.tsx`, `store.test.ts`.
+- [Settings: global char-limit + JSON export/import](../issues/13-settings-and-import-export.md) —
+  top-bar settings/misc cluster (`src/SettingsMenu.tsx`, mounted in `App.tsx`, replacing the
+  `280`/`⚙`/`⇄ json` placeholders). The store already had `updateSettings`/`exportStore`/`importStore`
+  (#08) and the editor already read `settings.charLimit ?? 280` (#10) — so this was pure UI. A live
+  `280`-style **readout chip** + a `⚙` **popover**: numeric **global char-limit** field committing to
+  `settings.charLimit` on valid parse (int 1..100000; blur re-seeds), which re-weights every Post live;
+  **Export JSON** downloads the superset envelope as `tweet-typer-YYYY-MM-DD.json`; **Import JSON** (hidden
+  file input) reads the file → **danger confirm** via `useDialog()` → `importStore()` (replace-on-import),
+  with store errors shown as an inline amber status line. Import/export lives *inside* the popover (not a
+  primary control) per the ticket. Popover closes on outside-click/Escape; popover CSS in `index.css`.
+  Per-thread limit + merge-by-id import stay fog. Verified: `pnpm build` clean, `pnpm test` 52/52,
+  `oxlint src/` exit 0; not committed.
 
 ## Not yet specified
 
@@ -171,9 +183,8 @@ Fog — graduates into sharp tickets as the decisions above resolve:
 
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14.**
   **07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter, 11 symbol browser+Styles,
-  and 12 templates are now resolved.** Remaining frontier — **13 settings/import-export,
-  14 copy+Open-in-X** — both unblocked and independently takeable (they consume `useStore()`; no
-  ordering forced among them). Seams now live: `useSelection()` (`src/lib/SelectionContext.tsx`,
+  12 templates, and 13 settings/import-export are now resolved.** Remaining frontier — **14 copy+Open-in-X**
+  — unblocked and takeable (consumes `useStore()`). Seams now live: `useSelection()` (`src/lib/SelectionContext.tsx`,
   active thread) and the **cursor-aware insertion seam** `useInsertion()` in
   `src/lib/InsertionContext.tsx` — `insertAtCursor()` (established by 10) **plus `transformSelection()`
   (added by 11** for in-place selection restyle). **12 put Templates in the left nav and made a template

@@ -312,6 +312,43 @@ button.chip:disabled {
   opacity: 1;
 }
 
+/* ── Settings popover (top-bar) ─────────────────────────────────────────── */
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: 248px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  text-transform: none;
+  letter-spacing: normal;
+  animation: modal-rise 0.14s ease-out;
+}
+.popover-hint {
+  margin-top: 4px;
+  margin-bottom: 8px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.popover-sep {
+  height: 1px;
+  margin: 14px 0;
+  background: var(--line);
+}
+.popover-status {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+}
+
 /* ── Modal / dialog ─────────────────────────────────────────────────────── */
 .modal-backdrop {
   position: fixed;

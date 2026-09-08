@@ -19,6 +19,7 @@ import { DialogProvider } from './DialogProvider.tsx'
 import { Navigator } from './Navigator.tsx'
 import { ThreadEditor } from './ThreadEditor.tsx'
 import { SymbolPanel } from './SymbolPanel.tsx'
+import { SettingsMenu } from './SettingsMenu.tsx'
 import { POST_MIME } from './lib/dnd.ts'
 
 export default function App() {
@@ -66,11 +67,8 @@ export default function App() {
           Tweet·Typer
         </span>
         <div style={{ flex: 1 }} />
-        {/* char-limit indicator (prototype `280` chip; wired by ticket 13) */}
-        <span className="chip">280</span>
-        {/* settings + import/export placeholders */}
-        <button type="button" className="chip" aria-label="Settings" title="Settings">⚙</button>
-        <button type="button" className="chip" aria-label="Import / export JSON" title="Import / export JSON">⇄ json</button>
+        {/* char-limit readout + settings/misc popover (import/export) — ticket 13 */}
+        <SettingsMenu />
       </header>
 
       {/* ── Left: Project/Thread navigator ──────────────────────────────── */}
