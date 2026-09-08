@@ -32,9 +32,26 @@ declare module 'twitter-text' {
 
   function parseTweet(text: string, options?: TweetParseConfig): ParseTweetResult
 
+  /**
+   * A single extracted entity. `indices` are code-point offsets [start, end).
+   * Exactly one of the optional descriptor fields is present, identifying the
+   * entity kind: mention (`screenName`), `hashtag`, `cashtag`, or `url`.
+   */
+  export interface EntityWithIndices {
+    indices: [number, number]
+    screenName?: string
+    hashtag?: string
+    cashtag?: string
+    url?: string
+    listSlug?: string
+  }
+
+  function extractEntitiesWithIndices(text: string): EntityWithIndices[]
+
   const _default: {
     configs: Configs
     parseTweet: typeof parseTweet
+    extractEntitiesWithIndices: typeof extractEntitiesWithIndices
   }
 
   export default _default

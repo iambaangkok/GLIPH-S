@@ -47,6 +47,17 @@ export interface InsertionAPI {
    * If no editor has ever been focused, this is a no-op.
    */
   insertAtCursor: (text: string) => void
+
+  /**
+   * Transform the current (non-empty) selection of the last-focused editor in
+   * place: reads the selected plain text, runs it through `transform`, and
+   * replaces the selection with the result. Used by the Styles tab to restyle
+   * a selection ("fancy fonts").
+   *
+   * No-op when no editor is focused, the selection is collapsed/empty, or the
+   * transform returns the input unchanged.
+   */
+  transformSelection: (transform: (selected: string) => string) => void
 }
 
 // ── Context ───────────────────────────────────────────────────────────────────
@@ -87,7 +98,25 @@ export function InsertionProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const api: InsertionAPI = { registerEditor, insertAtCursor }
+  const transformSelection = useCallback(
+    (transform: (selected: string) => string) => {
+      const editor = lastEditorRef.current
+      if (!editor) return
+
+      editor.update(() => {
+        const selection = $getSelection()
+        if (!$isRangeSelection(selection) || selection.isCollapsed()) return
+        const selected = selection.getTextContent()
+        const next = transform(selected)
+        // Skip no-op transforms so we don't churn undo history / caret.
+        if (next === selected) return
+        selection.insertText(next)
+      })
+    },
+    [],
+  )
+
+  const api: InsertionAPI = { registerEditor, insertAtCursor, transformSelection }
 
   return (
     <InsertionContext value={api}>
@@ -104,6 +133,9 @@ export function InsertionProvider({ children }: { children: ReactNode }) {
  * @example
  *   const { insertAtCursor } = useInsertion()
  *   <button onMouseDown={e => { e.preventDefault(); insertAtCursor('★') }} />
+ *
+ *   const { transformSelection } = useInsertion()
+ *   <button onMouseDown={e => { e.preventDefault(); transformSelection(s => applyStyle(s, 'bold')) }} />
  */
 export function useInsertion(): InsertionAPI {
   const ctx = use(InsertionContext)

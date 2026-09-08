@@ -111,6 +111,57 @@ body {
   opacity: 0.55;
 }
 
+/* ── Symbol-browser glyph cells ─────────────────────────────────────────── */
+.glyph-wrap {
+  position: relative;
+}
+.glyph-cell {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  font-weight: 400;
+  font-size: 15px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--fg);
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+.glyph-cell:hover {
+  background: var(--sel);
+  border-color: var(--muted);
+}
+.glyph-star {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  line-height: 1;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.1s, color 0.1s;
+  z-index: 2;
+}
+.glyph-wrap:hover .glyph-star {
+  opacity: 1;
+}
+.glyph-star.is-fav {
+  opacity: 1;
+  color: var(--accent);
+}
+
 /* ── Ruler hairline ─────────────────────────────────────────────────────── */
 .ruler {
   height: 7px;

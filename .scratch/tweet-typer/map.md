@@ -132,27 +132,42 @@ Hierarchy: **Project › Thread › Post.**
   last-focused Lexical editor; callers use `onMouseDown`+`preventDefault`. `App.tsx` wraps
   `<InsertionProvider>`. Verified: `pnpm test` 27/27, `pnpm build` clean, `oxlint` exit 0. Built by a
   Sonnet subagent; not committed.
+- [Symbol browser + Styles tab (right pane)](../issues/11-symbol-browser-and-styles.md) — the **core**
+  feature, `src/SymbolPanel.tsx` (replaces the App placeholder). **Symbols tab:** #02 dataset copied to
+  `src/data/symbols.json`, loaded via typed façade `src/lib/symbols.ts` (`searchGlyphs`/`glyphFor`);
+  search box + Favorites + Recent + category-chip 6-col grid; insertion via the #10 seam
+  (`onMouseDown`+`preventDefault` → `insertAtCursor`+`addRecent`), hover-star pins favorites through
+  `useStore()` (Recents store-capped at 50). **Styles tab:** `src/lib/styles.ts` — 9 fancy-font styles
+  (Bold/Italic/BoldItalic/Script/Mono/Double/SansBold/Fullwidth + Normal) from Mathematical-Alphanumeric
+  + Fullwidth codepoints w/ Letterlike holes patched; `applyStyle` = **normalize-to-ASCII-then-map**
+  (mutual exclusivity for free, Normal=reverse, unmapped pass-through), iterated by code point (SMP glyphs
+  weigh 2 per #01). **New seam:** extended `InsertionContext` with `transformSelection(fn)` (in-place
+  selection restyle, no-op on empty) — the primitive the Styles tab consumes, available to later tickets.
+  Verified: `pnpm test` 43/43, `pnpm build` clean, `oxlint` exit 0; not committed.
 
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14.**
-  **07 scaffold+tokens, 08 persistence, 09 navigator, and 10 editor+counter are now resolved.**
-  Remaining frontier — **11 symbol browser+Styles, 12 templates, 13 settings/import-export,
+  **07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter, and 11 symbol browser+Styles
+  are now resolved.** Remaining frontier — **12 templates, 13 settings/import-export,
   14 copy+Open-in-X** — all unblocked and independently takeable (they consume `useStore()`; no
   ordering forced among them). Seams now live: `useSelection()` (`src/lib/SelectionContext.tsx`,
-  active thread) and the **cursor-aware insertion seam** `useInsertion()`/`insertAtCursor()`
-  (`src/lib/InsertionContext.tsx`, established by 10) — **11 and 12 insert symbols/templates through
-  it** via `onMouseDown`+`preventDefault`. Note for 13: the editor already reads
-  `settings.charLimit ?? 280`, so wiring the global-limit setting lights up the counter.
+  active thread) and the **cursor-aware insertion seam** `useInsertion()` in
+  `src/lib/InsertionContext.tsx` — `insertAtCursor()` (established by 10) **plus `transformSelection()`
+  (added by 11** for in-place selection restyle). **12 inserts templates through `insertAtCursor`** via
+  `onMouseDown`+`preventDefault`. Note for 13: the editor already reads `settings.charLimit ?? 280`, so
+  wiring the global-limit setting lights up the counter.
 - Whole-thread **template skeletons** (MVP ships snippet templates only).
 - **Per-thread** char-limit override (MVP ships a single global limit).
 - **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,
   later feature — surfaced while resolving #3).
-- **Inline entity highlighting** — @mentions / #hashtags / $cashtags / URLs in accent color
-  via twitter-text `extractEntitiesWithIndices`, using the same Lexical decorator plumbing as
-  MVP's over-limit shading (zero architectural cost to add later — surfaced while resolving #4).
+- ~~**Inline entity highlighting**~~ — **pulled in early** during #11 polish (user request):
+  @mentions / #hashtags / $cashtags / URLs now tint via twitter-text `extractEntitiesWithIndices`
+  in the same overlay as over-limit shading (`HighlightOverlayPlugin` in `src/ThreadEditor.tsx`,
+  code-point-space). Rendered as a subtle cream `var(--sel)` tint rather than a new hue, to keep
+  the theme monochrome (accent == fg here); over-limit amber still wins on overlap.
 
 ## Out of scope
 

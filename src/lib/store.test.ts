@@ -4,7 +4,7 @@
  * Asserts:
  *   1. Entities survive a simulated reload (write → re-hydrate → read).
  *   2. "Unfiled" project is seeded on first load and remains non-deletable/renameable.
- *   3. symbols.recents is capped at 50.
+ *   3. symbols.recents is capped at 24.
  *   4. export→import replace round-trip preserves all data.
  */
 
@@ -158,16 +158,16 @@ describe('Entity round-trip through localStorage (reload survival)', () => {
   })
 })
 
-describe('symbols.recents cap at 50', () => {
-  it('caps recents at 50 entries', () => {
-    // Add 60 unique symbols
-    for (let i = 0; i < 60; i++) {
+describe('symbols.recents cap at 24', () => {
+  it('caps recents at 24 entries', () => {
+    // Add 40 unique symbols
+    for (let i = 0; i < 40; i++) {
       addRecent(`sym-${i}`)
     }
     const { recents } = getState().symbols
-    expect(recents).toHaveLength(50)
+    expect(recents).toHaveLength(24)
     // Most-recent first
-    expect(recents[0]).toBe('sym-59')
+    expect(recents[0]).toBe('sym-39')
   })
 
   it('deduplicates: re-adding an existing symbol moves it to front', () => {
@@ -261,7 +261,7 @@ describe('export → import replace round-trip', () => {
     expect(() => importStore(JSON.stringify(env))).toThrow('newer than code')
   })
 
-  it('imported recents are capped at 50', () => {
+  it('imported recents are capped at 24', () => {
     // Build a state with 80 recents and export it.
     for (let i = 0; i < 80; i++) addRecent(`s${i}`)
     // Manually jam 80 into the exported envelope.
@@ -269,7 +269,7 @@ describe('export → import replace round-trip', () => {
     const env = JSON.parse(json) as {
       data: { symbols: { recents: string[] } }
     }
-    // exportStore itself already caps at 50 from addRecent, so set manually:
+    // exportStore itself already caps from addRecent, so set manually:
     env.data.symbols.recents = Array.from({ length: 80 }, (_, i) => `x${i}`)
     const padded = JSON.stringify(env)
 
@@ -278,7 +278,7 @@ describe('export → import replace round-trip', () => {
     hydrate()
     importStore(padded)
 
-    expect(getState().symbols.recents).toHaveLength(50)
+    expect(getState().symbols.recents).toHaveLength(24)
   })
 })
 

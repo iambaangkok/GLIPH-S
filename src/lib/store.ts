@@ -7,7 +7,7 @@
  *   • Writes are debounced 250 ms per touched collection and force-flushed
  *     on `visibilitychange` (hidden) and `beforeunload`.
  *   • `StorageQuotaError` is caught → warn + preserve in-memory + surface.
- *   • `symbols.recents` is capped at 50.
+ *   • `symbols.recents` is capped at 24.
  *   • "Unfiled" default Project is seeded on first load and is non-deletable
  *     and non-renameable.
  *
@@ -42,7 +42,7 @@ import type {
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const UNFILED_NAME    = 'Unfiled'
-const RECENTS_CAP     = 50
+const RECENTS_CAP     = 24
 const DEBOUNCE_MS     = 250
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -572,7 +572,7 @@ export function removeFavorite(symbol: string): void {
 }
 
 /**
- * Record a recently used symbol. Most-recent first; capped at 50.
+ * Record a recently used symbol. Most-recent first; capped at 24.
  */
 export function addRecent(symbol: string): void {
   mutate('symbols', () => {
@@ -642,7 +642,7 @@ export function importStore(json: string): void {
   // Ensure "Unfiled" invariant is maintained after import.
   ensureUnfiled()
 
-  // Cap recents just in case the import had more than 50.
+  // Cap recents just in case the import had more than the cap.
   if (state.symbols.recents.length > RECENTS_CAP) {
     state.symbols = {
       ...state.symbols,

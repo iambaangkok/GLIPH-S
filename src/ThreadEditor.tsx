@@ -10,7 +10,8 @@
  *   • Weighted counting via twitter-text parseTweet (maxWeightedTweetLength
  *     from state.settings.charLimit, default 280).
  *   • Ruler-gauge counter (V7.4 amber fill bar).
- *   • Inline over-limit amber shading via OverLimitHighlightPlugin.
+ *   • Inline highlight overlay: @/#/$/URL entity tint + over-limit amber shading
+ *     via HighlightOverlayPlugin.
  *   • Last-focused editor registered in InsertionContext for ticket #11/#12.
  */
 
@@ -155,18 +156,27 @@ function FocusRegistrationPlugin({
   return null
 }
 
-// ── OverLimitHighlightPlugin ─────────────────────────────────────────────────
+// ── HighlightOverlayPlugin ────────────────────────────────────────────────────
+
+type CellKind = 'plain' | 'entity' | 'over'
 
 /**
- * After each editor state change, updates an amber overlay `<div>` positioned
- * on top of the contenteditable to highlight text beyond the weighted limit.
+ * After each editor state change, repaints an overlay `<div>` positioned on top
+ * of the contenteditable to highlight, in a single pass:
  *
- * Implementation: the overlay is `pointer-events: none; user-select: none`
- * so it doesn't interfere with cursor placement. The "safe" text portion is
- * rendered transparent (editor text shows through); the "over" portion gets
- * `var(--over)` background + `var(--warn)` foreground.
+ *   • **entities** — @mentions / #hashtags / $cashtags / URLs (via twitter-text
+ *     `extractEntitiesWithIndices`) are repainted in amber `var(--warn)` (a text
+ *     color change, no background), the monochrome-theme stand-in for X's links.
+ *   • **over-limit** — code points past the weighted limit get amber
+ *     `var(--over)` background + `var(--warn)` foreground; over-limit wins over
+ *     an entity tint in the overlapping region.
+ *
+ * The overlay is `pointer-events: none; user-select: none` so it never disturbs
+ * the caret. Everything is computed in **code-point** space (`Array.from`) so it
+ * aligns with twitter-text's code-point indices and stays correct across astral
+ * glyphs. Hidden entirely when there is nothing to highlight.
  */
-function OverLimitHighlightPlugin({
+function HighlightOverlayPlugin({
   limit,
   overlayRef,
 }: {
@@ -179,34 +189,64 @@ function OverLimitHighlightPlugin({
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
         const text = $getRoot().getTextContent()
-        const { weightedLength, validRangeEnd } = parseWeighted(text, limit)
-
         const overlay = overlayRef.current
         if (!overlay) return
 
-        // Over-limit is a length check, NOT `!valid`: twitter-text also reports
-        // `valid: false` for an empty tweet, which is not over-limit.
-        if (weightedLength <= limit) {
+        const cps = Array.from(text)
+        const { weightedLength, validRangeEnd } = parseWeighted(text, limit)
+        const overFrom = weightedLength > limit ? validRangeEnd : cps.length
+
+        // Per-code-point classification.
+        const kinds: CellKind[] = cps.map((_, i) =>
+          i >= overFrom ? 'over' : 'plain',
+        )
+        for (const e of twitterText.extractEntitiesWithIndices(text)) {
+          const [start, end] = e.indices
+          for (let i = start; i < end && i < kinds.length; i++) {
+            if (kinds[i] === 'plain') kinds[i] = 'entity'
+          }
+        }
+
+        // Nothing to paint → hide (keeps the plain editor untouched).
+        if (!kinds.some((k) => k !== 'plain')) {
           overlay.style.display = 'none'
+          overlay.innerHTML = ''
           return
         }
 
-        // validRangeEnd is a UTF-16 index into the raw text string.
-        const safe = text.slice(0, validRangeEnd)
-        const over = text.slice(validRangeEnd)
-
-        // The "safe" span is transparent so the real editor text shows through.
-        // The "over" span has amber background and foreground.
-        const safeHtml = escapeHtml(safe).replace(/\n/g, '<br/>')
-        const overHtml = escapeHtml(over).replace(/\n/g, '<br/>')
+        // Coalesce runs of like-kind code points into styled spans.
+        let html = ''
+        let run = ''
+        let runKind: CellKind = kinds[0] ?? 'plain'
+        const flush = () => {
+          if (run === '') return
+          html += `<span style="${STYLE_FOR[runKind]}">${escapeHtml(run).replace(/\n/g, '<br/>')}</span>`
+          run = ''
+        }
+        for (let i = 0; i < cps.length; i++) {
+          if (kinds[i] !== runKind) {
+            flush()
+            runKind = kinds[i]
+          }
+          run += cps[i]
+        }
+        flush()
 
         overlay.style.display = 'block'
-        overlay.innerHTML = `<span style="color:transparent">${safeHtml}</span><span style="background:var(--over);color:var(--warn);border-radius:2px">${overHtml}</span>`
+        overlay.innerHTML = html
       })
     })
   }, [editor, limit, overlayRef])
 
   return null
+}
+
+const STYLE_FOR: Record<CellKind, string> = {
+  plain: 'color:transparent',
+  // Entities repaint the editor text in amber (color change, no background) —
+  // same opaque-overlay technique as the over-limit span.
+  entity: 'color:var(--warn)',
+  over: 'color:var(--warn);background:var(--over);border-radius:2px',
 }
 
 function escapeHtml(str: string): string {
@@ -434,7 +474,7 @@ function PostEditor({
           <HistoryPlugin />
           <SeedContentPlugin content={post.content} seededRef={seededRef} />
           <FocusRegistrationPlugin onFocus={handleFocus} />
-          <OverLimitHighlightPlugin limit={limit} overlayRef={overlayRef} />
+          <HighlightOverlayPlugin limit={limit} overlayRef={overlayRef} />
         </LexicalComposer>
 
         {/* Amber over-limit overlay — pointer-events:none so editor stays clickable */}

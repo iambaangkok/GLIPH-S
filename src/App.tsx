@@ -18,6 +18,7 @@ import { InsertionProvider } from './lib/InsertionContext.tsx'
 import { DialogProvider } from './DialogProvider.tsx'
 import { Navigator } from './Navigator.tsx'
 import { ThreadEditor } from './ThreadEditor.tsx'
+import { SymbolPanel } from './SymbolPanel.tsx'
 
 export default function App() {
   return (
@@ -110,88 +111,15 @@ export default function App() {
           background: 'var(--surface)',
           borderLeft: '1px solid var(--line)',
           padding: 10,
-          overflowY: 'auto' as const,
+          overflow: 'hidden',
+          minHeight: 0,
+          minWidth: 0,
           display: 'flex',
           flexDirection: 'column' as const,
           gap: 0,
         }}
       >
-        {/* Tabs */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 6,
-            marginBottom: 10,
-            fontFamily: 'var(--font-mono)',
-            fontSize: 10.5,
-            textTransform: 'uppercase' as const,
-            letterSpacing: '0.08em',
-          }}
-        >
-          <span
-            style={{
-              padding: '3px 8px',
-              borderRadius: 'var(--radius)',
-              color: 'var(--accent)',
-              border: '1px solid var(--accent)',
-            }}
-          >
-            Symbols
-          </span>
-          <span
-            style={{
-              padding: '3px 8px',
-              borderRadius: 'var(--radius)',
-              color: 'var(--muted)',
-              border: '1px solid transparent',
-            }}
-          >
-            Styles
-          </span>
-        </div>
-
-        {/* V7.4 halftone band */}
-        <div className="panel-halftone-band" style={{ marginBottom: 10 }} />
-
-        {/* placeholder symbol grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
-            gap: 4,
-          }}
-        >
-          {['☯', '⊕', '⊗', '⇄', '⌘', '⌥', '⎋', '⏎', '△', '▽', '◈', '◉'].map(
-            (sym) => (
-              <div
-                key={sym}
-                style={{
-                  display: 'grid',
-                  placeItems: 'center',
-                  aspectRatio: '1',
-                  fontWeight: 400,
-                  fontSize: 14,
-                  border: '1px solid var(--line)',
-                  borderRadius: 'var(--radius)',
-                  color: 'var(--fg)',
-                  cursor: 'pointer',
-                }}
-              >
-                {sym}
-              </div>
-            ),
-          )}
-        </div>
-
-        {/* ruler hairline decoration */}
-        <div className="ruler" style={{ marginTop: 12 }} />
-
-        <div
-          className="label-mono"
-          style={{ marginTop: 10, opacity: 0.4, fontSize: 9 }}
-        >
-          Symbol browser — ticket fills this
-        </div>
+        <SymbolPanel />
       </aside>
     </div>
     </DialogProvider>

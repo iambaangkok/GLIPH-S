@@ -58,10 +58,10 @@ export interface Settings extends Entity {
 
 // ── Symbols store ────────────────────────────────────────────────────────────
 
-/** Persisted under `tt:symbols`. Recents is capped at 50. */
+/** Persisted under `tt:symbols`. Recents is capped at 24. */
 export interface SymbolsStore {
   favorites: string[]
-  /** Insertion-ordered; most-recent first; capped at 50. */
+  /** Insertion-ordered; most-recent first; capped at 24. */
   recents: string[]
 }
 
