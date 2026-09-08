@@ -175,6 +175,10 @@ function attachLifecycle(): void {
 
 function mutate(col: CollectionKey, fn: () => void): void {
   fn()
+  // Mint a fresh top-level state reference so React's useState bailout
+  // (Object.is on the snapshot) does not swallow the re-render. Mutations
+  // above edit the collections in place; this makes the change observable.
+  state = { ...state }
   markDirty(col)
   notify()
 }
@@ -382,6 +386,36 @@ export function deleteThread(id: string): void {
       }
     })
   }
+}
+
+/**
+ * Reorder a Thread within its Project by moving it from one index to another.
+ * Both indices are 0-based positions within `project.threadIds`.
+ * No-op if fromIndex === toIndex or either index is out of range.
+ */
+export function reorderThread(projectId: string, fromIndex: number, toIndex: number): void {
+  const project = state.projects[projectId]
+  if (!project) throw new Error(`Project ${projectId} not found`)
+  const ids = project.threadIds
+  if (
+    fromIndex === toIndex ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= ids.length ||
+    toIndex >= ids.length
+  ) return
+
+  const next = [...ids]
+  const [moved] = next.splice(fromIndex, 1)
+  next.splice(toIndex, 0, moved)
+
+  mutate('projects', () => {
+    state.projects[projectId] = {
+      ...project,
+      threadIds: next,
+      updatedAt: now(),
+    }
+  })
 }
 
 // ── Post CRUD ─────────────────────────────────────────────────────────────────

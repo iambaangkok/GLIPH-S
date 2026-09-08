@@ -127,3 +127,145 @@ body {
   color: var(--accent);
   border-color: var(--accent);
 }
+
+/* ── Interactive states ─────────────────────────────────────────────────── */
+.chip {
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+button.chip {
+  background: none;
+}
+button.chip:hover:not(:disabled) {
+  color: var(--fg);
+  border-color: var(--muted);
+}
+button.chip:active:not(:disabled) {
+  background: var(--sel);
+}
+button.chip--accent:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--sel);
+}
+button.chip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.chip:focus-visible,
+.icon-btn:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Small square icon buttons (✎ × ▲ ▼) */
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1;
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
+}
+.icon-btn:hover:not(:disabled) {
+  color: var(--fg);
+  background: var(--sel);
+  border-color: var(--line);
+}
+.icon-btn:active:not(:disabled) {
+  background: var(--over);
+}
+.icon-btn:disabled {
+  color: var(--line);
+  cursor: default;
+}
+.icon-btn--danger:hover:not(:disabled) {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+/* Navigator rows — hover + selected state via data attribute so inline
+   styles don't shadow the :hover rule. */
+.nav-row {
+  color: var(--muted);
+  transition: background 0.12s, color 0.12s;
+}
+.nav-row:hover {
+  background: var(--sel);
+  color: var(--fg);
+}
+.nav-row[data-selected='true'] {
+  background: var(--sel);
+  color: var(--accent);
+  font-weight: 600;
+}
+.nav-project-toggle {
+  transition: color 0.12s;
+}
+.nav-project-toggle:hover .label-mono {
+  color: var(--fg);
+}
+
+/* ── Modal / dialog ─────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 9, 7, 0.68);
+  animation: modal-fade 0.12s ease-out;
+}
+.modal {
+  width: min(340px, 90vw);
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  animation: modal-rise 0.14s ease-out;
+}
+@keyframes modal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modal-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-title {
+  margin-bottom: 10px;
+}
+.modal-message {
+  margin-bottom: 4px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.modal-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.12s;
+}
+.modal-input:focus {
+  border-color: var(--accent);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}

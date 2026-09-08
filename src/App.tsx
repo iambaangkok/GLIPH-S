@@ -13,10 +13,106 @@
  * The <StoreProvider> is live here; panes consume via useStore().
  */
 import { StoreProvider } from './lib/StoreContext.tsx'
+import { SelectionProvider, useSelection } from './lib/SelectionContext.tsx'
+import { useStore } from './lib/StoreContext.tsx'
+import { DialogProvider } from './DialogProvider.tsx'
+import { Navigator } from './Navigator.tsx'
+
+function CenterPanePlaceholder() {
+  const { selectedThreadId } = useSelection()
+  const { state } = useStore()
+  const thread = selectedThreadId ? state.threads[selectedThreadId] : null
+
+  return (
+    <>
+      {thread && (
+        <div
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 11,
+            color: 'var(--muted)',
+            letterSpacing: '0.08em',
+            marginBottom: 8,
+          }}
+        >
+          <span style={{ color: 'var(--accent)' }}>▸ {thread.title || '(untitled)'}</span>
+          {' '}
+          <span style={{ opacity: 0.5 }}>{thread.id}</span>
+        </div>
+      )}
+      {/* placeholder post card */}
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--line)',
+          borderRadius: 'var(--radius)',
+          padding: 12,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 13.5,
+            color: 'var(--fg)',
+            minHeight: 60,
+          }}
+        >
+          {thread
+            ? `— selected thread: "${thread.title || '(untitled)'}" —`
+            : '— post editor placeholder —'}
+        </div>
+        <footer
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            marginTop: 10,
+          }}
+        >
+          {/* ruler-gauge counter (V7.4 style) */}
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 12,
+              color: 'var(--muted)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7,
+            }}
+          >
+            {/* ruler-gauge fill bar (amber variant per V7.4) */}
+            <div
+              style={{
+                width: 64,
+                height: 9,
+                alignSelf: 'center',
+                background: `
+                  linear-gradient(var(--warn), var(--warn)) left center / 0% 3px no-repeat,
+                  linear-gradient(var(--line), var(--line)) left center / 100% 1px no-repeat,
+                  repeating-linear-gradient(90deg, var(--muted) 0 1px, transparent 1px 8px) center / 100% 9px no-repeat
+                `,
+              }}
+            />
+            <span>0</span>
+          </div>
+          <div style={{ flex: 1 }} />
+          <span
+            className="label-mono"
+            style={{ fontSize: 9, opacity: 0.45 }}
+          >
+            Ticket 09 · Ticket 04
+          </span>
+        </footer>
+      </div>
+    </>
+  )
+}
 
 export default function App() {
   return (
     <StoreProvider>
+    <SelectionProvider>
+    <DialogProvider>
     <div
       style={{
         display: 'grid',
@@ -61,8 +157,8 @@ export default function App() {
         <span style={{ fontSize: 12, opacity: 0.5 }}>®</span>
         <span style={{ fontSize: 12, opacity: 0.5 }}>⇄</span>
         {/* settings + import/export placeholders */}
-        <span className="chip" style={{ cursor: 'pointer' }}>Settings</span>
-        <span className="chip" style={{ cursor: 'pointer' }}>Export</span>
+        <button type="button" className="chip">Settings</button>
+        <button type="button" className="chip">Export</button>
       </header>
 
       {/* ── Left: Project/Thread navigator ──────────────────────────────── */}
@@ -76,26 +172,7 @@ export default function App() {
           overflowY: 'auto' as const,
         }}
       >
-        <div className="label-mono" style={{ margin: '10px 4px 6px' }}>
-          Projects
-        </div>
-        {/* placeholder content */}
-        <div
-          style={{
-            padding: '6px 8px',
-            borderRadius: 'var(--radius)',
-            fontSize: 12.5,
-            color: 'var(--fg)',
-          }}
-        >
-          — navigator placeholder —
-        </div>
-        <div
-          className="label-mono"
-          style={{ margin: '16px 4px 6px', opacity: 0.5, fontSize: 9 }}
-        >
-          Ticket 08 fills this pane
-        </div>
+        <Navigator />
       </nav>
 
       {/* ── Center: Thread editor / Post stack ──────────────────────────── */}
@@ -112,68 +189,7 @@ export default function App() {
           gap: 12,
         }}
       >
-        {/* placeholder post card */}
-        <div
-          style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--line)',
-            borderRadius: 'var(--radius)',
-            padding: 12,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 13.5,
-              color: 'var(--fg)',
-              minHeight: 60,
-            }}
-          >
-            — post editor placeholder —
-          </div>
-          <footer
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              marginTop: 10,
-            }}
-          >
-            {/* ruler-gauge counter (V7.4 style) */}
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                color: 'var(--muted)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 7,
-              }}
-            >
-              {/* ruler-gauge fill bar (amber variant per V7.4) */}
-              <div
-                style={{
-                  width: 64,
-                  height: 9,
-                  alignSelf: 'center',
-                  background: `
-                    linear-gradient(var(--warn), var(--warn)) left center / 0% 3px no-repeat,
-                    linear-gradient(var(--line), var(--line)) left center / 100% 1px no-repeat,
-                    repeating-linear-gradient(90deg, var(--muted) 0 1px, transparent 1px 8px) center / 100% 9px no-repeat
-                  `,
-                }}
-              />
-              <span>0</span>
-            </div>
-            <div style={{ flex: 1 }} />
-            <span
-              className="label-mono"
-              style={{ fontSize: 9, opacity: 0.45 }}
-            >
-              Ticket 08 · Ticket 04
-            </span>
-          </footer>
-        </div>
+        <CenterPanePlaceholder />
 
         <div
           className="label-mono"
@@ -275,6 +291,8 @@ export default function App() {
         </div>
       </aside>
     </div>
+    </DialogProvider>
+    </SelectionProvider>
     </StoreProvider>
   )
 }

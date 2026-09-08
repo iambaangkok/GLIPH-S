@@ -38,6 +38,7 @@ import {
   onQuotaWarning,
   removeFavorite,
   renameProject,
+  reorderThread,
   subscribe,
   updatePost,
   updateSettings,
@@ -64,6 +65,7 @@ export interface StoreAPI {
   createThread: typeof createThread
   updateThread: typeof updateThread
   deleteThread: typeof deleteThread
+  reorderThread: typeof reorderThread
 
   // Posts
   createPost: typeof createPost
@@ -128,6 +130,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     createThread,
     updateThread,
     deleteThread,
+    reorderThread,
     createPost,
     updatePost,
     deletePost,

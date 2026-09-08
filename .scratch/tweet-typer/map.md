@@ -110,16 +110,28 @@ Hierarchy: **Project › Thread › Post.**
   on hide/unload, quota = warn+preserve via `onQuotaWarning` (never drops), recents cap 50, superset
   `exportStore()`/replace-`importStore()`. Verified: `pnpm test` 20/20, `pnpm build` clean, oxlint 0.
   New: `src/lib/{types,migrate,store,store.test}.ts` + `StoreContext.tsx`; vitest+jsdom devDeps.
+- [Project / Thread / Post navigator (left pane)](../issues/09-navigator.md) — left pane built on
+  `useStore()`: `Navigator`→`ProjectGroup`→`ThreadRow` in `src/Navigator.tsx`. Project CRUD with
+  **Unfiled pinned last & locked** (rename/delete hidden for `isDefault`, store throws as backstop);
+  threads grouped/collapsible with create/select/delete/reorder; new threads land in the chosen
+  project via each group's `+ thread`. V7.4 via `.label-mono`/`.chip`/`.ruler`/`--sel`. Two store
+  gaps this ticket exposed, now filled: `reorderThread(projectId, from, to)` (immutable splice of
+  `project.threadIds`, wired through `StoreAPI`) and an **ephemeral** `SelectionContext`
+  (`useSelection()`, non-persisted) — the seam ticket 10's editor reads to know the active thread.
+  `App.tsx` wraps `<SelectionProvider>` + mounts `<Navigator/>`. Verified: `pnpm build` clean,
+  `pnpm test` 20/20, `oxlint` exit 0. Built by a Sonnet subagent; not committed.
 
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14.**
-  **07 scaffold+tokens and 08 persistence are now resolved.** With the store live, the frontier
-  opens to the pane tickets — **09 navigator, 10 editor+counter, 11 symbol browser+Styles,
-  12 templates, 13 settings/import-export, 14 copy+Open-in-X** — all unblocked and independently
-  takeable (they consume `useStore()`; no ordering forced among them).
+  **07 scaffold+tokens, 08 persistence, and 09 navigator are now resolved.** With the store live
+  and the navigator driving selection via `SelectionContext`, the frontier is the remaining pane
+  tickets — **10 editor+counter, 11 symbol browser+Styles, 12 templates, 13 settings/import-export,
+  14 copy+Open-in-X** — all unblocked and independently takeable (they consume `useStore()`; no
+  ordering forced among them). Note for 10: read the active thread from `useSelection()`
+  (`src/lib/SelectionContext.tsx`), the seam 09 established.
 - Whole-thread **template skeletons** (MVP ships snippet templates only).
 - **Per-thread** char-limit override (MVP ships a single global limit).
 - **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,
