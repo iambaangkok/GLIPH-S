@@ -1,5 +1,5 @@
 /**
- * Ephemeral cursor-aware insertion seam for Tweet Typer.
+ * Ephemeral cursor-aware insertion seam for GLIPH-S.
  *
  * Holds a reference to the last-focused Lexical editor so that the symbol
  * browser / template panel (tickets #11 / #12) can call `insertAtCursor(text)`

@@ -1,5 +1,5 @@
 /**
- * Selection context for Tweet Typer.
+ * Selection context for GLIPH-S.
  *
  * Holds what the center pane is currently editing: either the selected thread
  * (its posts) or the selected template (ticket 12 — a template behaves like a

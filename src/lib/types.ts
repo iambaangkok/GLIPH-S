@@ -1,5 +1,5 @@
 /**
- * Domain types for Tweet Typer.
+ * Domain types for GLIPH-S.
  *
  * Decisions locked in:
  *   .scratch/tweet-typer/issues/03-localstorage-schema.md (Resolution)

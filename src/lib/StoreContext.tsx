@@ -1,5 +1,5 @@
 /**
- * React binding for the Tweet Typer store.
+ * React binding for the GLIPH-S store.
  *
  * Usage:
  *   • Wrap the app in `<StoreProvider>` (done in App.tsx).

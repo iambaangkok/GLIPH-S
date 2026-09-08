@@ -2,7 +2,7 @@
 
 Status: accepted
 
-Tweet Typer is client-side only, so localStorage is the system of record. We persist to
+GLIPH-S is client-side only, so localStorage is the system of record. We persist to
 **per-collection keys** (`tt:projects`, `tt:threads`, `tt:posts`, `tt:templates`,
 `tt:settings`, `tt:symbols`, `tt:meta`), each holding a normalized `id → entity` map, with
 child order carried as ID-arrays on the parent (`Project.threadIds`, `Thread.postIds`).

@@ -1,5 +1,5 @@
 /**
- * Focused round-trip tests for the Tweet Typer persistence layer.
+ * Focused round-trip tests for the GLIPH-S persistence layer.
  *
  * Asserts:
  *   1. Entities survive a simulated reload (write → re-hydrate → read).

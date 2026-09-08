@@ -1,5 +1,5 @@
 /**
- * Normalized in-memory store + typed API for Tweet Typer.
+ * Normalized in-memory store + typed API for GLIPH-S.
  *
  * Architecture (locked in ADR-0001):
  *   • In-memory state is authoritative; localStorage is the sync target.

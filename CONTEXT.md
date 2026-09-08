@@ -1,4 +1,4 @@
-# Tweet Typer
+# GLIPH-S
 
 A client-side web app for composing "cool" X.com posts with a curated sci-fi/techwear
 symbol browser, threads, projects, templates, and X-accurate character counting — all

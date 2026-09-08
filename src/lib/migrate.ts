@@ -1,5 +1,5 @@
 /**
- * Boot-time migration runner for the Tweet Typer localStorage store.
+ * Boot-time migration runner for the GLIPH-S localStorage store.
  *
  * Keyed off `tt:meta.schemaVersion` (SCHEMA_VERSION = 1 in storage.ts).
  *
@@ -56,7 +56,7 @@ export function runMigrations(): void {
   if (onDisk > SCHEMA_VERSION) {
     throw new Error(
       `Store schema version ${onDisk} is newer than code version ${SCHEMA_VERSION}. ` +
-      `Please update Tweet Typer.`,
+      `Please update GLIPH-S.`,
     )
   }
 
