@@ -176,15 +176,28 @@ Hierarchy: **Project › Thread › Post.**
   primary control) per the ticket. Popover closes on outside-click/Escape; popover CSS in `index.css`.
   Per-thread limit + merge-by-id import stay fog. Verified: `pnpm build` clean, `pnpm test` 52/52,
   `oxlint src/` exit 0; not committed.
+- [Per-Post copy + "Open in X" intent link](../issues/14-copy-and-open-in-x.md) — the two per-Post
+  output controls (**option C**) in each Post footer of `src/ThreadEditor.tsx` (`PostEditor`), matching
+  the #12 template-footer treatment. Both are **symbol-only, dimmed** stadium chips (user-revised — no
+  amber primary): **Copy** = `⧉ copy` → `clipboard.writeText(liveText)` with a 1.5 s amber `copied` flash;
+  **Open in X** = `↗ 𝕏` **anchor** to `https://x.com/intent/post?text=${encodeURIComponent(liveText)}`
+  (`target=_blank` + `rel=noopener`). Both **disabled on an empty Post** (anchor via new `chip--disabled`
+  + `aria-disabled` + preventDefault, since `:disabled` skips `<a>`); descriptive aria-labels kept. Pure
+  UI — the Post's plain text is already the live counter state. CSS: `a.chip`/`a.chip:hover`/`.chip--disabled`
+  in `src/index.css`. **Thread-level "Open in X" isn't possible** — `intent/post` prefills one composer
+  only; multi-post threading needs the X API + auth (already Out of scope). (Output option D — JSON
+  export/import — already shipped in #13.) Verified: `pnpm build` clean, `pnpm test` 52/52, `oxlint src/`
+  exit 0; not committed.
 
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
-- **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14.**
-  **07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter, 11 symbol browser+Styles,
-  12 templates, and 13 settings/import-export are now resolved.** Remaining frontier — **14 copy+Open-in-X**
-  — unblocked and takeable (consumes `useStore()`). Seams now live: `useSelection()` (`src/lib/SelectionContext.tsx`,
+- **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14, and
+  every one of 07–14 is now resolved** (07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter,
+  11 symbol browser+Styles, 12 templates, 13 settings/import-export, 14 copy+Open-in-X). The original
+  MVP execution set is complete; later polish/UX lives in tickets 15–16. Seams live: `useSelection()`
+  (`src/lib/SelectionContext.tsx`,
   active thread) and the **cursor-aware insertion seam** `useInsertion()` in
   `src/lib/InsertionContext.tsx` — `insertAtCursor()` (established by 10) **plus `transformSelection()`
   (added by 11** for in-place selection restyle). **12 put Templates in the left nav and made a template

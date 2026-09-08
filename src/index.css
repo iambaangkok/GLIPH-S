@@ -227,6 +227,21 @@ button.chip:disabled {
   opacity: 0.4;
   cursor: default;
 }
+
+/* Anchor rendered as a chip (e.g. "Open in X" intent link) */
+a.chip {
+  text-decoration: none;
+  cursor: pointer;
+}
+a.chip:hover {
+  color: var(--fg);
+  border-color: var(--muted);
+}
+.chip--disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
 .chip:focus-visible,
 .icon-btn:focus-visible {
   outline: 1px solid var(--accent);

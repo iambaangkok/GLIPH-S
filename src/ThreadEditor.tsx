@@ -68,6 +68,7 @@ function PostEditor({
 
   const [dragOver, setDragOver] = useState<DropHalf | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   // Live text for the counter (separate from the Lexical editor state).
   const [liveText, setLiveText] = useState(post.content)
@@ -92,6 +93,22 @@ function PostEditor({
     },
     [post.id, updatePost],
   )
+
+  // ── Output controls (ticket 14) ─────────────────────────────────────────────
+  // Copy the Post's plain text; flash "copied" for 1.5 s (mirrors TemplateEditor).
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(liveText)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Clipboard unavailable (insecure context / denied) — silently ignore.
+    }
+  }, [liveText])
+
+  // "Open in X" intent link — X's web composer prefilled with the Post text.
+  const intentHref = `https://x.com/intent/post?text=${encodeURIComponent(liveText)}`
+  const isEmpty = liveText.trim() === ''
 
   // ── Drag to reorder (within this thread only) ───────────────────────────────
   function handleDragStart(e: DragEvent) {
@@ -213,6 +230,36 @@ function PostEditor({
             over limit
           </span>
         )}
+        {copied && (
+          <span
+            className="label-mono"
+            style={{ fontSize: 9, color: 'var(--accent)' }}
+          >
+            copied
+          </span>
+        )}
+        <button
+          type="button"
+          className="chip"
+          aria-label="Copy post to clipboard"
+          title="Copy to clipboard"
+          disabled={isEmpty}
+          onClick={() => void handleCopy()}
+        >
+          ⧉ copy
+        </button>
+        <a
+          className={`chip${isEmpty ? ' chip--disabled' : ''}`}
+          href={isEmpty ? undefined : intentHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open post in X composer"
+          title="Open in X"
+          aria-disabled={isEmpty || undefined}
+          onClick={(e) => { if (isEmpty) e.preventDefault() }}
+        >
+          ↗ 𝕏
+        </a>
       </footer>
     </div>
   )
