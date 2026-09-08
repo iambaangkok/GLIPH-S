@@ -203,6 +203,18 @@ Hierarchy: **Project › Thread › Post.**
   `onMouseDown`+`preventDefault` doesn't cancel the drag. Recents stay most-recent-first. Verified:
   `pnpm test` **63/63**, `pnpm build` clean, `oxlint src/` exit 0; not committed.
 
+- [Responsive layout for mobile / vertical phone screens](../issues/16-responsive-mobile-layout.md) —
+  responsive is **in-MVP** (portrait phone + landscape + tablet, not deferred). Settled the spec
+  frame: **single 768px breakpoint** (≥768 desktop 3-pane fluid up to the cap; <768 mobile);
+  mobile = **bottom-tab bar, one pane per segment, default Editor**, top bar retained; **symbols
+  via a 2-row quick-insert strip above the keyboard** (favorites+recents) as the default touch;
+  settings popover → **near-full-width sheet**; **≥44px touch targets**, ruler-gauge/amber overlay
+  unchanged. **Ultra-wide cap built this session** (rider request): whole shell centered + capped at
+  `--shell-max-w: 1080px` with `--bg` letterbox + hairline edge (`src/App.tsx` + `src/index.css`,
+  `pnpm build` clean). Fuzzy interaction details graduated to **prototype #17** → **build #18**:
+  Templates-as-4th-segment?, the strip ↔ full-browser relationship, and tablet/~768–1080 middle-band
+  (collapsible right panel?).
+
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
@@ -210,8 +222,9 @@ Fog — graduates into sharp tickets as the decisions above resolve:
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14, and
   every one of 07–14 is now resolved** (07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter,
   11 symbol browser+Styles, 12 templates, 13 settings/import-export, 14 copy+Open-in-X). The original
-  MVP execution set is complete; later polish/UX lives in tickets 15–16 — **15 now resolved**, leaving
-  **16 (responsive mobile layout)** as the only open child. Seams live: `useSelection()`
+  MVP execution set is complete; later polish/UX lives in tickets 15–16 — **both now resolved**.
+  Responsive work continues via **16's graduated children: prototype #17 (frontier) → build #18
+  (blocked by #17)** — the only open children. Seams live: `useSelection()`
   (`src/lib/SelectionContext.tsx`, active thread — **now persisted to the `tt:ui` store** added by 15)
   and the **cursor-aware insertion seam** `useInsertion()` in
   `src/lib/InsertionContext.tsx` — `insertAtCursor()` (established by 10) **plus `transformSelection()`

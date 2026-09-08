@@ -28,12 +28,25 @@ export default function App() {
     <SelectionProvider>
     <InsertionProvider>
     <DialogProvider>
+    {/* Ultra-wide letterbox: center the whole shell and cap it at --shell-max-w
+        so it never sprawls past a normal screen width; --bg fills the sides. */}
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        height: '100%',
+        background: 'var(--bg)',
+      }}
+    >
     <div
       style={{
         display: 'grid',
         gridTemplateRows: 'var(--topbar-h) 1fr',
         gridTemplateColumns: 'var(--nav-w) 1fr var(--panel-w)',
         height: '100%',
+        width: '100%',
+        maxWidth: 'var(--shell-max-w)',
+        borderInline: '1px solid var(--line)',
         background: 'var(--bg)',
         color: 'var(--fg)',
         fontFamily: 'var(--font-body)',
@@ -130,6 +143,7 @@ export default function App() {
       >
         <SymbolPanel />
       </aside>
+    </div>
     </div>
     </DialogProvider>
     </InsertionProvider>

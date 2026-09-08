@@ -22,6 +22,7 @@
   --topbar-h:  40px;
   --nav-w:     200px;
   --panel-w:   220px;
+  --shell-max-w: 1080px;         /* cap the whole 3-pane shell on ultra-wide screens */
 
   /* Typography */
   --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
