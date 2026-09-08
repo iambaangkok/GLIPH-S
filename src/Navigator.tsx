@@ -12,13 +12,24 @@
  *   • Threads: create under a project, rename (prompt), delete, reorder (↑/↓).
  *   • Clicking a thread row sets it as the selectedThreadId in SelectionContext.
  *   • Deleting the currently selected thread clears selection.
+ *   • Templates (ticket 12): a section below the projects. Clicking a template
+ *     opens it in the center editor (it "behaves like a Post"); each row also
+ *     carries a copy button (copies the snippet, flashes "copied"), rename and
+ *     delete. Templates and threads are mutually-exclusive selections.
  */
 
-import { useState } from 'react'
+import { useState, type DragEvent } from 'react'
 import { useStore } from './lib/StoreContext.tsx'
 import { useSelection } from './lib/SelectionContext.tsx'
 import { useDialog } from './DialogProvider.tsx'
 import type { Project } from './lib/types.ts'
+import {
+  THREAD_MIME,
+  TEMPLATE_MIME,
+  dropHalf,
+  dropShadow,
+  type DropHalf,
+} from './lib/dnd.ts'
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -39,9 +50,12 @@ function ThreadRow({
   isSelected,
   onSelect,
 }: ThreadRowProps) {
-  const { state, updateThread, deleteThread, reorderThread } = useStore()
+  const { state, updateThread, deleteThread, moveThread } = useStore()
   const { setSelectedThreadId, selectedThreadId } = useSelection()
   const dialog = useDialog()
+
+  const [dragOver, setDragOver] = useState<DropHalf | null>(null)
+  const [dragging, setDragging] = useState(false)
 
   const thread = state.threads[threadId]
   if (!thread) return null
@@ -71,18 +85,32 @@ function ThreadRow({
     if (selectedThreadId === threadId) setSelectedThreadId(null)
   }
 
-  function handleMoveUp() {
-    if (index <= 0) return
-    reorderThread(projectId, index, index - 1)
+  // ── Drag to reorder / move across projects ──────────────────────────────────
+  function handleDragStart(e: DragEvent) {
+    e.dataTransfer.setData(THREAD_MIME, threadId)
+    e.dataTransfer.effectAllowed = 'move'
+    setDragging(true)
   }
 
-  function handleMoveDown() {
-    if (index >= threadIds.length - 1) return
-    reorderThread(projectId, index, index + 1)
+  function handleDragOver(e: DragEvent) {
+    if (!e.dataTransfer.types.includes(THREAD_MIME)) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOver(dropHalf(e))
   }
 
-  const isFirst = index === 0
-  const isLast = index === threadIds.length - 1
+  function handleDrop(e: DragEvent) {
+    if (!e.dataTransfer.types.includes(THREAD_MIME)) return
+    e.preventDefault()
+    const half = dragOver ?? dropHalf(e)
+    setDragOver(null)
+    const draggedId = e.dataTransfer.getData(THREAD_MIME)
+    if (!draggedId || draggedId === threadId) return
+    // 'before' this row, or 'after' == before the next row (null = end).
+    const beforeId = half === 'before' ? threadId : (threadIds[index + 1] ?? null)
+    if (beforeId === draggedId) return // dropping right where it already sits
+    moveThread(draggedId, projectId, beforeId)
+  }
 
   return (
     <div
@@ -91,6 +119,11 @@ function ThreadRow({
       data-selected={isSelected}
       className="nav-row"
       onClick={onSelect}
+      onDragOver={handleDragOver}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragOver(null)
+      }}
+      onDrop={handleDrop}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -103,10 +136,22 @@ function ThreadRow({
         fontSize: 12.5,
         cursor: 'pointer',
         userSelect: 'none',
+        opacity: dragging ? 0.4 : 1,
+        boxShadow: dropShadow(dragOver),
       }}
     >
-      {/* thread indicator glyph */}
-      <span style={{ opacity: 0.5, fontSize: 10, marginRight: 3 }}>└</span>
+      {/* drag handle — only this grip starts a drag (not the whole row) */}
+      <span
+        draggable
+        onDragStart={handleDragStart}
+        onDragEnd={() => { setDragging(false); setDragOver(null) }}
+        onClick={(e) => e.stopPropagation()}
+        aria-label="Drag handle — drag to move thread"
+        title="Drag to move"
+        style={{ opacity: 0.5, fontSize: 11, marginRight: 3, cursor: 'grab' }}
+      >
+        ⠿
+      </span>
 
       {/* thread title — flex grow */}
       <span
@@ -118,24 +163,6 @@ function ThreadRow({
 
       {/* action cluster — revealed on row hover / selection */}
       <span className="row-actions">
-        <button
-          type="button"
-          aria-label="Move thread up"
-          className="icon-btn"
-          disabled={isFirst}
-          onClick={(e) => { e.stopPropagation(); void handleMoveUp() }}
-        >
-          ▲
-        </button>
-        <button
-          type="button"
-          aria-label="Move thread down"
-          className="icon-btn"
-          disabled={isLast}
-          onClick={(e) => { e.stopPropagation(); void handleMoveDown() }}
-        >
-          ▼
-        </button>
         <button
           type="button"
           aria-label="Rename thread"
@@ -165,11 +192,30 @@ interface ProjectGroupProps {
 }
 
 function ProjectGroup({ project, isLast }: ProjectGroupProps) {
-  const { state, createThread, renameProject, deleteProject } = useStore()
+  const { state, createThread, renameProject, deleteProject, moveThread } = useStore()
   const { selectedThreadId, setSelectedThreadId } = useSelection()
   const dialog = useDialog()
 
   const [collapsed, setCollapsed] = useState(false)
+  const [projDropOver, setProjDropOver] = useState(false)
+
+  // Dropping a thread on the project header or its empty zone appends it to this
+  // project (a cross-project move when it came from elsewhere).
+  function handleProjectDragOver(e: DragEvent) {
+    if (!e.dataTransfer.types.includes(THREAD_MIME)) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setProjDropOver(true)
+  }
+
+  function handleProjectDrop(e: DragEvent) {
+    if (!e.dataTransfer.types.includes(THREAD_MIME)) return
+    e.preventDefault()
+    setProjDropOver(false)
+    const draggedId = e.dataTransfer.getData(THREAD_MIME)
+    if (!draggedId) return
+    moveThread(draggedId, project.id, null)
+  }
 
   const isDefault = project.isDefault
   const label = project.name
@@ -220,13 +266,18 @@ function ProjectGroup({ project, isLast }: ProjectGroupProps) {
 
   return (
     <div className="nav-project" style={{ marginBottom: isLast ? 0 : 4 }}>
-      {/* Project header row */}
+      {/* Project header row — also a drop target (append to this project) */}
       <div
+        onDragOver={handleProjectDragOver}
+        onDragLeave={() => setProjDropOver(false)}
+        onDrop={handleProjectDrop}
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 4,
           marginBottom: 2,
+          borderRadius: 'var(--radius)',
+          boxShadow: projDropOver ? 'inset 0 0 0 1px var(--accent)' : undefined,
         }}
       >
         {/* collapse toggle + label (glyph + name — prototype `◈ Launch teasers`) */}
@@ -304,6 +355,9 @@ function ProjectGroup({ project, isLast }: ProjectGroupProps) {
         <div role="rowgroup">
           {threadIds.length === 0 && (
             <div
+              onDragOver={handleProjectDragOver}
+              onDragLeave={() => setProjDropOver(false)}
+              onDrop={handleProjectDrop}
               style={{
                 paddingLeft: 18,
                 paddingTop: 4,
@@ -312,9 +366,11 @@ function ProjectGroup({ project, isLast }: ProjectGroupProps) {
                 color: 'var(--line)',
                 fontFamily: 'var(--font-mono)',
                 letterSpacing: '0.05em',
+                borderRadius: 'var(--radius)',
+                boxShadow: projDropOver ? 'inset 0 0 0 1px var(--accent)' : undefined,
               }}
             >
-              — empty —
+              — empty · drop here —
             </div>
           )}
           {threadIds.map((tid, idx) => {
@@ -332,6 +388,258 @@ function ProjectGroup({ project, isLast }: ProjectGroupProps) {
               />
             )
           })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── TemplateRow ─────────────────────────────────────────────────────────────────
+
+/**
+ * One template in the Templates section. Clicking the row opens it in the
+ * center editor (a template "behaves like a Post"). Actions: copy the snippet
+ * to the clipboard (flashes "copied"), rename (prompt), delete (confirm).
+ */
+function TemplateRow({ templateId, nextId }: { templateId: string; nextId: string | null }) {
+  const { state, updateTemplate, deleteTemplate, reorderTemplate } = useStore()
+  const { selectedTemplateId, setSelectedTemplateId } = useSelection()
+  const dialog = useDialog()
+
+  const [copied, setCopied] = useState(false)
+  const [dragOver, setDragOver] = useState<DropHalf | null>(null)
+  const [dragging, setDragging] = useState(false)
+
+  const template = state.templates[templateId]
+  if (!template) return null
+
+  const label = template.name.trim() === '' ? '(untitled)' : template.name
+  const isSelected = selectedTemplateId === templateId
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(template.content)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Clipboard unavailable (insecure context / denied) — silently ignore.
+    }
+  }
+
+  async function handleRename() {
+    const next = await dialog.prompt({
+      title: 'Rename template',
+      initialValue: template.name,
+      placeholder: 'Template name',
+      confirmLabel: 'Rename',
+    })
+    if (next === null) return
+    updateTemplate(templateId, { name: next.trim() })
+  }
+
+  async function handleDelete() {
+    const ok = await dialog.confirm({
+      title: 'Delete template',
+      message: `Delete “${label}”? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (!ok) return
+    deleteTemplate(templateId)
+    if (selectedTemplateId === templateId) setSelectedTemplateId(null)
+  }
+
+  // ── Drag to reorder ─────────────────────────────────────────────────────────
+  function handleDragStart(e: DragEvent) {
+    e.dataTransfer.setData(TEMPLATE_MIME, templateId)
+    e.dataTransfer.effectAllowed = 'move'
+    setDragging(true)
+  }
+
+  function handleDragOver(e: DragEvent) {
+    if (!e.dataTransfer.types.includes(TEMPLATE_MIME)) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOver(dropHalf(e))
+  }
+
+  function handleDrop(e: DragEvent) {
+    if (!e.dataTransfer.types.includes(TEMPLATE_MIME)) return
+    e.preventDefault()
+    const half = dragOver ?? dropHalf(e)
+    setDragOver(null)
+    const draggedId = e.dataTransfer.getData(TEMPLATE_MIME)
+    if (!draggedId || draggedId === templateId) return
+    const beforeId = half === 'before' ? templateId : nextId
+    if (beforeId === draggedId) return
+    reorderTemplate(draggedId, beforeId)
+  }
+
+  return (
+    <div
+      role="row"
+      aria-selected={isSelected}
+      data-selected={isSelected}
+      className="nav-row"
+      onClick={() => setSelectedTemplateId(templateId)}
+      onDragOver={handleDragOver}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragOver(null)
+      }}
+      onDrop={handleDrop}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        paddingLeft: 18,
+        paddingRight: 6,
+        paddingTop: 5,
+        paddingBottom: 5,
+        borderRadius: 'var(--radius)',
+        fontSize: 12.5,
+        cursor: 'pointer',
+        userSelect: 'none',
+        opacity: dragging ? 0.4 : 1,
+        boxShadow: dropShadow(dragOver),
+      }}
+    >
+      {/* drag handle — only this grip starts a drag (not the whole row) */}
+      <span
+        draggable
+        onDragStart={handleDragStart}
+        onDragEnd={() => { setDragging(false); setDragOver(null) }}
+        onClick={(e) => e.stopPropagation()}
+        aria-label="Drag handle — drag to reorder template"
+        title="Drag to reorder"
+        style={{ opacity: 0.5, fontSize: 11, marginRight: 3, cursor: 'grab' }}
+      >
+        ⠿
+      </span>
+      {/* template indicator glyph (prototype ▤) */}
+      <span style={{ opacity: 0.5, fontSize: 10, marginRight: 3 }}>▤</span>
+
+      {/* template name — flex grow */}
+      <span
+        style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        title={template.name}
+      >
+        {label}
+      </span>
+
+      {/* Transient "copied" flash — kept outside row-actions so it stays
+          visible after the pointer leaves the row. */}
+      {copied && (
+        <span
+          className="label-mono"
+          style={{ fontSize: 8.5, color: 'var(--accent)', marginRight: 2 }}
+        >
+          copied
+        </span>
+      )}
+
+      {/* action cluster — revealed on row hover / selection */}
+      <span className="row-actions">
+        <button
+          type="button"
+          aria-label="Copy template to clipboard"
+          title="Copy to clipboard"
+          className="icon-btn"
+          onClick={(e) => { e.stopPropagation(); void handleCopy() }}
+        >
+          ⧉
+        </button>
+        <button
+          type="button"
+          aria-label="Rename template"
+          className="icon-btn"
+          onClick={(e) => { e.stopPropagation(); void handleRename() }}
+        >
+          ✎
+        </button>
+        <button
+          type="button"
+          aria-label="Delete template"
+          className="icon-btn icon-btn--danger"
+          onClick={(e) => { e.stopPropagation(); void handleDelete() }}
+        >
+          ×
+        </button>
+      </span>
+    </div>
+  )
+}
+
+// ── TemplatesSection ────────────────────────────────────────────────────────────
+
+/**
+ * Templates group in the left pane (prototype "Templates" section). Create a
+ * template here (opens it in the editor); each row is a TemplateRow.
+ */
+function TemplatesSection() {
+  const { state, createTemplate } = useStore()
+  const { setSelectedTemplateId } = useSelection()
+  const dialog = useDialog()
+
+  const templates = Object.values(state.templates).sort((a, b) => a.order - b.order)
+
+  async function handleAddTemplate() {
+    const name = await dialog.prompt({
+      title: 'New template',
+      placeholder: 'Template name',
+      confirmLabel: 'Create',
+    })
+    if (name === null) return
+    const template = createTemplate(name.trim() || 'Untitled', '')
+    // Open the fresh template in the center editor so it behaves like a Post.
+    setSelectedTemplateId(template.id)
+  }
+
+  return (
+    <div className="nav-templates" style={{ marginTop: 14 }}>
+      {/* Section header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          margin: '0 4px 6px',
+        }}
+      >
+        <span className="label-mono" style={{ flex: 1 }}>Templates</span>
+        <button
+          type="button"
+          aria-label="Create new template"
+          title="New template"
+          onClick={() => void handleAddTemplate()}
+          className="chip chip--accent"
+        >
+          +
+        </button>
+      </div>
+
+      {templates.length === 0 ? (
+        <div
+          style={{
+            paddingLeft: 18,
+            paddingTop: 4,
+            paddingBottom: 4,
+            fontSize: 11,
+            color: 'var(--line)',
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: '0.05em',
+          }}
+        >
+          — no templates —
+        </div>
+      ) : (
+        <div role="rowgroup">
+          {templates.map((t, i) => (
+            <TemplateRow
+              key={t.id}
+              templateId={t.id}
+              nextId={templates[i + 1]?.id ?? null}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -396,6 +704,9 @@ export function Navigator() {
 
         {/* single terminal hairline — closes the projects section (V7.4) */}
         <div className="ruler" style={{ margin: '10px 0 0' }} />
+
+        {/* Templates section — below projects, per the prototype. */}
+        <TemplatesSection />
       </div>
     </div>
   )

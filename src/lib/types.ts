@@ -49,6 +49,12 @@ export interface Post extends Entity {
 export interface Template extends Entity {
   name: string
   content: string
+  /**
+   * Sort position in the (flat) templates list, ascending. Renormalized to
+   * 0..n-1 on every reorder. Templates have no parent to hold an order array,
+   * so ordering lives on the entity itself.
+   */
+  order: number
 }
 
 export interface Settings extends Entity {

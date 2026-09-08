@@ -35,10 +35,12 @@ import {
   getState,
   hydrate,
   importStore,
+  moveThread,
   onQuotaWarning,
   removeFavorite,
   renameProject,
   reorderPost,
+  reorderTemplate,
   reorderThread,
   subscribe,
   updatePost,
@@ -67,6 +69,7 @@ export interface StoreAPI {
   updateThread: typeof updateThread
   deleteThread: typeof deleteThread
   reorderThread: typeof reorderThread
+  moveThread: typeof moveThread
 
   // Posts
   createPost: typeof createPost
@@ -78,6 +81,7 @@ export interface StoreAPI {
   createTemplate: typeof createTemplate
   updateTemplate: typeof updateTemplate
   deleteTemplate: typeof deleteTemplate
+  reorderTemplate: typeof reorderTemplate
 
   // Settings
   updateSettings: typeof updateSettings
@@ -133,6 +137,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     updateThread,
     deleteThread,
     reorderThread,
+    moveThread,
     createPost,
     updatePost,
     deletePost,
@@ -140,6 +145,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     createTemplate,
     updateTemplate,
     deleteTemplate,
+    reorderTemplate,
     updateSettings,
     addFavorite,
     removeFavorite,

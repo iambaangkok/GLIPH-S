@@ -19,6 +19,7 @@ import { DialogProvider } from './DialogProvider.tsx'
 import { Navigator } from './Navigator.tsx'
 import { ThreadEditor } from './ThreadEditor.tsx'
 import { SymbolPanel } from './SymbolPanel.tsx'
+import { POST_MIME } from './lib/dnd.ts'
 
 export default function App() {
   return (
@@ -87,8 +88,18 @@ export default function App() {
       </nav>
 
       {/* ── Center: Thread editor / Post stack ──────────────────────────── */}
+      {/* Accept post drags across the whole pane so the cursor stays "move"
+          (not the no-drop sign) anywhere in the center — individual post cards
+          own the actual reorder + drop indicator. */}
       <main
         className="editor-halftone center-scroll"
+        onDragOver={(e) => {
+          if (!e.dataTransfer.types.includes(POST_MIME)) return
+          e.preventDefault()
+          // Must be set on every dragover, or the boundary between cards falls
+          // back to the "no-drop" cursor and flickers.
+          e.dataTransfer.dropEffect = 'move'
+        }}
         style={{
           gridRow: 2,
           gridColumn: 2,

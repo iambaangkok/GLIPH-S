@@ -419,6 +419,63 @@ export function reorderThread(projectId: string, fromIndex: number, toIndex: num
 }
 
 /**
+ * Move a Thread to `toProjectId`, positioned immediately before
+ * `beforeThreadId`, or appended when `beforeThreadId` is null.
+ *
+ * Handles both same-project reordering and cross-project moves (the drag-and-
+ * drop path). On a cross-project move the thread's `projectId` is updated and it
+ * is spliced out of the source project's `threadIds` and into the target's.
+ * No-op when nothing changes.
+ */
+export function moveThread(
+  threadId: string,
+  toProjectId: string,
+  beforeThreadId: string | null,
+): void {
+  if (threadId === beforeThreadId) return
+
+  const thread = state.threads[threadId]
+  if (!thread) throw new Error(`Thread ${threadId} not found`)
+  const toProject = state.projects[toProjectId]
+  if (!toProject) throw new Error(`Project ${toProjectId} not found`)
+  const fromProject = state.projects[thread.projectId]
+  if (!fromProject) throw new Error(`Project ${thread.projectId} not found`)
+
+  if (fromProject.id === toProject.id) {
+    const ids = fromProject.threadIds.filter((id) => id !== threadId)
+    let insertAt = beforeThreadId === null ? ids.length : ids.indexOf(beforeThreadId)
+    if (insertAt === -1) insertAt = ids.length
+    ids.splice(insertAt, 0, threadId)
+
+    // No-op guard.
+    if (
+      ids.length === fromProject.threadIds.length &&
+      ids.every((id, i) => id === fromProject.threadIds[i])
+    ) return
+
+    mutate('projects', () => {
+      state.projects[toProject.id] = { ...toProject, threadIds: ids, updatedAt: now() }
+    })
+    return
+  }
+
+  // Cross-project move.
+  const srcIds = fromProject.threadIds.filter((id) => id !== threadId)
+  const dstIds = [...toProject.threadIds]
+  let insertAt = beforeThreadId === null ? dstIds.length : dstIds.indexOf(beforeThreadId)
+  if (insertAt === -1) insertAt = dstIds.length
+  dstIds.splice(insertAt, 0, threadId)
+
+  mutate('projects', () => {
+    state.projects[fromProject.id] = { ...fromProject, threadIds: srcIds, updatedAt: now() }
+    state.projects[toProject.id] = { ...toProject, threadIds: dstIds, updatedAt: now() }
+  })
+  mutate('threads', () => {
+    state.threads[threadId] = { ...thread, projectId: toProjectId, updatedAt: now() }
+  })
+}
+
+/**
  * Reorder a Post within its Thread by moving it from one index to another.
  * Both indices are 0-based positions within `thread.postIds`.
  * No-op if fromIndex === toIndex or either index is out of range.
@@ -505,12 +562,46 @@ export function deletePost(id: string): void {
 // ── Template CRUD ─────────────────────────────────────────────────────────────
 
 /**
- * Create a Template.
+ * Create a Template, appended at the end of the list.
  */
 export function createTemplate(name: string, content: string): Template {
-  const template: Template = { ...makeBase(), name, content }
+  const maxOrder = Object.values(state.templates).reduce(
+    (m, t) => Math.max(m, t.order ?? 0),
+    -1,
+  )
+  const template: Template = { ...makeBase(), name, content, order: maxOrder + 1 }
   mutate('templates', () => { state.templates[template.id] = template })
   return template
+}
+
+/**
+ * Reorder a Template so it sits immediately before `beforeId`, or at the end of
+ * the list when `beforeId` is null. Order values are renormalized to 0..n-1.
+ * No-op when the resulting order is unchanged.
+ */
+export function reorderTemplate(templateId: string, beforeId: string | null): void {
+  if (templateId === beforeId) return
+
+  const currentIds = Object.values(state.templates)
+    .sort((a, b) => a.order - b.order)
+    .map((t) => t.id)
+
+  if (!currentIds.includes(templateId)) return
+
+  const nextIds = currentIds.filter((id) => id !== templateId)
+  let insertAt = beforeId === null ? nextIds.length : nextIds.indexOf(beforeId)
+  if (insertAt === -1) insertAt = nextIds.length
+  nextIds.splice(insertAt, 0, templateId)
+
+  // No-op guard — skip the write if nothing actually moved.
+  if (nextIds.every((id, i) => id === currentIds[i])) return
+
+  mutate('templates', () => {
+    nextIds.forEach((id, i) => {
+      const t = state.templates[id]
+      if (t && t.order !== i) state.templates[id] = { ...t, order: i, updatedAt: now() }
+    })
+  })
 }
 
 /**

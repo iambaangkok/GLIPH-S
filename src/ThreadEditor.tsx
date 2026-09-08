@@ -4,315 +4,46 @@
  * Renders a vertical stack of PostEditor cards for the selected thread.
  * Shows an empty state when no thread is selected.
  *
+ * When a Template is selected in the navigator instead of a thread (ticket 12,
+ * "a template behaves like a Post"), this pane defers to <TemplateEditor/> —
+ * the same editing surface, one card, editing the template's content.
+ *
  * Features:
  *   • Add / remove / reorder Posts within the thread.
  *   • Each Post uses a Lexical contenteditable; plain text is canonical.
  *   • Weighted counting via twitter-text parseTweet (maxWeightedTweetLength
  *     from state.settings.charLimit, default 280).
  *   • Ruler-gauge counter (V7.4 amber fill bar).
- *   • Inline highlight overlay: @/#/$/URL entity tint + over-limit amber shading
- *     via HighlightOverlayPlugin.
+ *   • Inline highlight overlay: @/#/$/URL entity tint + over-limit amber shading.
  *   • Last-focused editor registered in InsertionContext for ticket #11/#12.
+ *
+ * The Lexical body + counter live in the shared WeightedTextEditor module so the
+ * Post and Template editors stay identical.
  */
 
-import React, {
+import {
   useCallback,
   useEffect,
-  useRef,
   useState,
+  type DragEvent,
   type JSX,
 } from 'react'
 
-import { LexicalComposer } from '@lexical/react/LexicalComposer'
-import { ContentEditable } from '@lexical/react/LexicalContentEditable'
-import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin'
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin'
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-
-import {
-  $createParagraphNode,
-  $createTextNode,
-  $getRoot,
-  type EditorState,
-  type LexicalEditor,
-} from 'lexical'
-
-import twitterText from 'twitter-text'
-
 import { useStore } from './lib/StoreContext.tsx'
 import { useSelection } from './lib/SelectionContext.tsx'
-import { useInsertion } from './lib/InsertionContext.tsx'
 import type { Post } from './lib/types.ts'
-
-// ── twitter-text helpers ──────────────────────────────────────────────────────
-
-const twitterConfigs = twitterText.configs
-import type { TweetParseConfig } from 'twitter-text'
-
-function parseWeighted(text: string, limit: number) {
-  const opts: TweetParseConfig = {
-    ...(twitterConfigs.defaults as TweetParseConfig),
-    maxWeightedTweetLength: limit,
-  }
-  return twitterText.parseTweet(text, opts)
-}
-
-// ── Minimal ErrorBoundary for Lexical ─────────────────────────────────────────
-
-interface LexicalEBProps {
-  children: JSX.Element
-  onError: (error: Error) => void
-}
-
-class LexicalErrorBoundary extends React.Component<
-  LexicalEBProps,
-  { hasError: boolean }
-> {
-  constructor(props: LexicalEBProps) {
-    super(props)
-    this.state = { hasError: false }
-  }
-
-  static getDerivedStateFromError(): { hasError: boolean } {
-    return { hasError: true }
-  }
-
-  componentDidCatch(err: Error): void {
-    this.props.onError(err)
-  }
-
-  render(): JSX.Element {
-    if (this.state.hasError) {
-      return (
-        <div style={{ color: 'var(--warn)', fontSize: 11, padding: 8 }}>
-          Editor error — please reload.
-        </div>
-      )
-    }
-    return this.props.children
-  }
-}
-
-// ── SeedContentPlugin ─────────────────────────────────────────────────────────
-
-/**
- * Seeds the editor with `content` on mount and re-seeds whenever `content`
- * changes externally (e.g. after store import). Uses HISTORY_MERGE_TAG to
- * avoid polluting undo history.
- */
-function SeedContentPlugin({
-  content,
-  seededRef,
-}: {
-  content: string
-  seededRef: React.MutableRefObject<string | null>
-}) {
-  const [editor] = useLexicalComposerContext()
-
-  useEffect(() => {
-    if (seededRef.current === content) return
-    seededRef.current = content
-
-    editor.update(
-      () => {
-        const root = $getRoot()
-        root.clear()
-        const paragraph = $createParagraphNode()
-        paragraph.append($createTextNode(content))
-        root.append(paragraph)
-      },
-      { tag: 'history-merge' },
-    )
-  }, [editor, content, seededRef])
-
-  return null
-}
-
-// ── FocusRegistrationPlugin ───────────────────────────────────────────────────
-
-/**
- * Registers this editor as the last-focused one in InsertionContext on focus.
- */
-function FocusRegistrationPlugin({
-  onFocus,
-}: {
-  onFocus: (editor: LexicalEditor) => void
-}) {
-  const [editor] = useLexicalComposerContext()
-
-  useEffect(() => {
-    const root = editor.getRootElement()
-    if (!root) return
-
-    function handleFocus() {
-      onFocus(editor)
-    }
-
-    root.addEventListener('focus', handleFocus)
-    return () => root.removeEventListener('focus', handleFocus)
-  }, [editor, onFocus])
-
-  return null
-}
-
-// ── HighlightOverlayPlugin ────────────────────────────────────────────────────
-
-type CellKind = 'plain' | 'entity' | 'over'
-
-/**
- * After each editor state change, repaints an overlay `<div>` positioned on top
- * of the contenteditable to highlight, in a single pass:
- *
- *   • **entities** — @mentions / #hashtags / $cashtags / URLs (via twitter-text
- *     `extractEntitiesWithIndices`) are repainted in amber `var(--warn)` (a text
- *     color change, no background), the monochrome-theme stand-in for X's links.
- *   • **over-limit** — code points past the weighted limit get amber
- *     `var(--over)` background + `var(--warn)` foreground; over-limit wins over
- *     an entity tint in the overlapping region.
- *
- * The overlay is `pointer-events: none; user-select: none` so it never disturbs
- * the caret. Everything is computed in **code-point** space (`Array.from`) so it
- * aligns with twitter-text's code-point indices and stays correct across astral
- * glyphs. Hidden entirely when there is nothing to highlight.
- */
-function HighlightOverlayPlugin({
-  limit,
-  overlayRef,
-}: {
-  limit: number
-  overlayRef: React.RefObject<HTMLDivElement | null>
-}) {
-  const [editor] = useLexicalComposerContext()
-
-  useEffect(() => {
-    return editor.registerUpdateListener(({ editorState }) => {
-      editorState.read(() => {
-        const text = $getRoot().getTextContent()
-        const overlay = overlayRef.current
-        if (!overlay) return
-
-        const cps = Array.from(text)
-        const { weightedLength, validRangeEnd } = parseWeighted(text, limit)
-        const overFrom = weightedLength > limit ? validRangeEnd : cps.length
-
-        // Per-code-point classification.
-        const kinds: CellKind[] = cps.map((_, i) =>
-          i >= overFrom ? 'over' : 'plain',
-        )
-        for (const e of twitterText.extractEntitiesWithIndices(text)) {
-          const [start, end] = e.indices
-          for (let i = start; i < end && i < kinds.length; i++) {
-            if (kinds[i] === 'plain') kinds[i] = 'entity'
-          }
-        }
-
-        // Nothing to paint → hide (keeps the plain editor untouched).
-        if (!kinds.some((k) => k !== 'plain')) {
-          overlay.style.display = 'none'
-          overlay.innerHTML = ''
-          return
-        }
-
-        // Coalesce runs of like-kind code points into styled spans.
-        let html = ''
-        let run = ''
-        let runKind: CellKind = kinds[0] ?? 'plain'
-        const flush = () => {
-          if (run === '') return
-          html += `<span style="${STYLE_FOR[runKind]}">${escapeHtml(run).replace(/\n/g, '<br/>')}</span>`
-          run = ''
-        }
-        for (let i = 0; i < cps.length; i++) {
-          if (kinds[i] !== runKind) {
-            flush()
-            runKind = kinds[i]
-          }
-          run += cps[i]
-        }
-        flush()
-
-        overlay.style.display = 'block'
-        overlay.innerHTML = html
-      })
-    })
-  }, [editor, limit, overlayRef])
-
-  return null
-}
-
-const STYLE_FOR: Record<CellKind, string> = {
-  plain: 'color:transparent',
-  // Entities repaint the editor text in amber (color change, no background) —
-  // same opaque-overlay technique as the over-limit span.
-  entity: 'color:var(--warn)',
-  over: 'color:var(--warn);background:var(--over);border-radius:2px',
-}
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-}
-
-// ── RulerGauge ────────────────────────────────────────────────────────────────
-
-function RulerGauge({
-  weightedLength,
-  limit,
-  overLimit,
-}: {
-  weightedLength: number
-  limit: number
-  overLimit: boolean
-}): JSX.Element {
-  const pct = Math.min(weightedLength / limit, 1) * 100
-  const remaining = limit - weightedLength
-  const isNearLimit = pct >= 80
-  const fillColor = overLimit ? 'var(--warn)' : isNearLimit ? 'var(--warn)' : 'var(--muted)'
-  const countColor = overLimit ? 'var(--warn)' : isNearLimit ? 'var(--warn)' : 'var(--muted)'
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 7,
-        fontFamily: 'var(--font-mono)',
-        fontSize: 11,
-        color: 'var(--muted)',
-      }}
-    >
-      {/* V7.4 ruler-gauge fill bar */}
-      <div
-        style={{
-          width: 64,
-          height: 9,
-          alignSelf: 'center',
-          background: `
-            linear-gradient(${fillColor}, ${fillColor}) left center / ${pct}% 3px no-repeat,
-            linear-gradient(var(--line), var(--line)) left center / 100% 1px no-repeat,
-            repeating-linear-gradient(90deg, var(--muted) 0 1px, transparent 1px 8px) center / 100% 9px no-repeat
-          `,
-          transition: 'background 0.1s',
-        }}
-      />
-      {/* Numeric count: shows remaining when over-limit, weighted length otherwise */}
-      <span
-        style={{
-          color: countColor,
-          fontWeight: overLimit ? 700 : 400,
-          minWidth: 28,
-          textAlign: 'right',
-          transition: 'color 0.1s',
-        }}
-      >
-        {overLimit ? remaining : weightedLength}
-      </span>
-    </div>
-  )
-}
+import {
+  POST_MIME,
+  dropHalf,
+  dropShadow,
+  type DropHalf,
+} from './lib/dnd.ts'
+import {
+  EditableTextBody,
+  RulerGauge,
+  parseWeighted,
+} from './WeightedTextEditor.tsx'
+import { TemplateEditor } from './TemplateEditor.tsx'
 
 // ── PostEditor ────────────────────────────────────────────────────────────────
 
@@ -321,8 +52,7 @@ interface PostEditorProps {
   index: number
   total: number
   limit: number
-  onMoveUp: () => void
-  onMoveDown: () => void
+  onReorder: (draggedId: string, half: DropHalf) => void
   onDelete: () => void
 }
 
@@ -331,22 +61,19 @@ function PostEditor({
   index,
   total,
   limit,
-  onMoveUp,
-  onMoveDown,
+  onReorder,
   onDelete,
 }: PostEditorProps): JSX.Element {
   const { updatePost } = useStore()
-  const { registerEditor } = useInsertion()
+
+  const [dragOver, setDragOver] = useState<DropHalf | null>(null)
+  const [dragging, setDragging] = useState(false)
 
   // Live text for the counter (separate from the Lexical editor state).
   const [liveText, setLiveText] = useState(post.content)
 
-  // Ref tracking the last content we seeded into Lexical — prevents infinite
-  // re-seeding when our own onChange updates the store.
-  const seededRef = useRef<string | null>(null)
-
   // Re-sync liveText when the store's post.content changes externally
-  // (e.g. after import). The SeedContentPlugin will also re-seed the editor.
+  // (e.g. after import). The EditableTextBody will also re-seed the editor.
   useEffect(() => {
     setLiveText(post.content)
   }, [post.content])
@@ -357,49 +84,63 @@ function PostEditor({
   // an *empty* post too, so `!valid` would wrongly flag a blank post as over.
   const overLimit = weightedLength > limit
 
-  const overlayRef = useRef<HTMLDivElement>(null)
-
-  const handleChange = useCallback(
-    (editorState: EditorState) => {
-      editorState.read(() => {
-        const text = $getRoot().getTextContent()
-        // Update local counter immediately.
-        setLiveText(text)
-        // Stamp the seeded ref so SeedContentPlugin doesn't loop.
-        seededRef.current = text
-        // Write back to the store — debounced at store layer.
-        updatePost(post.id, text)
-      })
+  const handleChangeText = useCallback(
+    (text: string) => {
+      setLiveText(text)
+      // Write back to the store — debounced at store layer.
+      updatePost(post.id, text)
     },
     [post.id, updatePost],
   )
 
-  const handleFocus = useCallback(
-    (editor: LexicalEditor) => {
-      registerEditor(editor)
-    },
-    [registerEditor],
-  )
+  // ── Drag to reorder (within this thread only) ───────────────────────────────
+  function handleDragStart(e: DragEvent) {
+    e.dataTransfer.setData(POST_MIME, post.id)
+    e.dataTransfer.effectAllowed = 'move'
+    setDragging(true)
+  }
 
-  const isFirst = index === 0
-  const isLast = index === total - 1
+  function handleDragOver(e: DragEvent) {
+    if (!e.dataTransfer.types.includes(POST_MIME)) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOver(dropHalf(e))
+  }
 
-  const initialConfig = {
-    namespace: `post-${post.id}`,
-    onError: (err: Error) => { console.error('PostEditor Lexical error:', err) },
-    editorState: null as null,
+  // Only clear when the pointer truly leaves the card — dragleave also fires
+  // when moving onto a child element, which would otherwise flicker the
+  // drop indicator on/off.
+  function handleDragLeave(e: DragEvent) {
+    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
+    setDragOver(null)
+  }
+
+  function handleDrop(e: DragEvent) {
+    if (!e.dataTransfer.types.includes(POST_MIME)) return
+    e.preventDefault()
+    e.stopPropagation()
+    const half = dragOver ?? dropHalf(e)
+    setDragOver(null)
+    const draggedId = e.dataTransfer.getData(POST_MIME)
+    if (!draggedId || draggedId === post.id) return
+    onReorder(draggedId, half)
   }
 
   return (
     <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       style={{
         background: 'var(--surface)',
         border: '1px solid var(--line)',
         borderRadius: 'var(--radius)',
         overflow: 'hidden',
+        opacity: dragging ? 0.4 : 1,
+        boxShadow: dropShadow(dragOver),
       }}
     >
-      {/* Post header — position label + reorder + delete */}
+      {/* Post header — drag handle + position label + delete */}
       <div
         style={{
           display: 'flex',
@@ -409,6 +150,18 @@ function PostEditor({
           borderBottom: '1px solid var(--line)',
         }}
       >
+        {/* drag handle — only this grip starts a drag (reorders within thread) */}
+        <span
+          draggable
+          onDragStart={handleDragStart}
+          onDragEnd={() => { setDragging(false); setDragOver(null) }}
+          aria-label="Drag handle — drag to reorder post"
+          title="Drag to reorder"
+          style={{ fontSize: 11, opacity: 0.5, cursor: 'grab', marginRight: 2 }}
+        >
+          ⠿
+        </span>
+
         <span
           className="label-mono"
           style={{ flex: 1, fontSize: 9, opacity: 0.55 }}
@@ -416,26 +169,6 @@ function PostEditor({
           {index + 1} / {total}
         </span>
 
-        <button
-          type="button"
-          aria-label="Move post up"
-          className="icon-btn"
-          disabled={isFirst}
-          onClick={onMoveUp}
-          style={{ fontSize: 9 }}
-        >
-          ▲
-        </button>
-        <button
-          type="button"
-          aria-label="Move post down"
-          className="icon-btn"
-          disabled={isLast}
-          onClick={onMoveDown}
-          style={{ fontSize: 9 }}
-        >
-          ▼
-        </button>
         <button
           type="button"
           aria-label="Delete post"
@@ -447,55 +180,14 @@ function PostEditor({
         </button>
       </div>
 
-      {/* Editor body — positioned wrapper for overlay */}
-      <div style={{ position: 'relative', padding: '10px 12px' }}>
-        <LexicalComposer initialConfig={initialConfig}>
-          <PlainTextPlugin
-            contentEditable={
-              <ContentEditable
-                aria-label={`Post ${index + 1} editor`}
-                style={{
-                  outline: 'none',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: 13.5,
-                  color: 'var(--fg)',
-                  lineHeight: 1.55,
-                  minHeight: 72,
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                  position: 'relative',
-                  zIndex: 1,
-                }}
-              />
-            }
-            ErrorBoundary={LexicalErrorBoundary}
-          />
-          <OnChangePlugin onChange={handleChange} ignoreSelectionChange />
-          <HistoryPlugin />
-          <SeedContentPlugin content={post.content} seededRef={seededRef} />
-          <FocusRegistrationPlugin onFocus={handleFocus} />
-          <HighlightOverlayPlugin limit={limit} overlayRef={overlayRef} />
-        </LexicalComposer>
-
-        {/* Amber over-limit overlay — pointer-events:none so editor stays clickable */}
-        <div
-          ref={overlayRef}
-          aria-hidden="true"
-          style={{
-            display: 'none',
-            position: 'absolute',
-            inset: '10px 12px',
-            fontFamily: 'var(--font-body)',
-            fontSize: 13.5,
-            lineHeight: 1.55,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            zIndex: 2,
-          }}
-        />
-      </div>
+      {/* Editor body */}
+      <EditableTextBody
+        id={`post-${post.id}`}
+        content={post.content}
+        limit={limit}
+        ariaLabel={`Post ${index + 1} editor`}
+        onChangeText={handleChangeText}
+      />
 
       {/* Post footer — ruler gauge */}
       <footer
@@ -530,15 +222,21 @@ function PostEditor({
 
 export function ThreadEditor(): JSX.Element {
   const { state, createPost, deletePost, reorderPost } = useStore()
-  const { selectedThreadId } = useSelection()
+  const { selectedThreadId, selectedTemplateId } = useSelection()
+
+  const limit =
+    (state.settings as Record<string, unknown>)['charLimit'] as number | undefined ?? 280
+
+  // A selected template takes over the pane and behaves like a Post (#12).
+  // Keyed on the id so switching templates remounts with a fresh local draft.
+  if (selectedTemplateId) {
+    return <TemplateEditor key={selectedTemplateId} limit={limit} />
+  }
 
   const thread = selectedThreadId ? state.threads[selectedThreadId] : null
   const posts = thread
     ? (thread.postIds.map((id) => state.posts[id]).filter(Boolean) as Post[])
     : []
-
-  const limit =
-    (state.settings as Record<string, unknown>)['charLimit'] as number | undefined ?? 280
 
   // ── Empty state ────────────────────────────────────────────────────────────
 
@@ -657,8 +355,16 @@ export function ThreadEditor(): JSX.Element {
               index={idx}
               total={posts.length}
               limit={limit}
-              onMoveUp={() => reorderPost(thread.id, idx, idx - 1)}
-              onMoveDown={() => reorderPost(thread.id, idx, idx + 1)}
+              onReorder={(draggedId, half) => {
+                const fromIndex = posts.findIndex((p) => p.id === draggedId)
+                if (fromIndex === -1) return
+                // Insert-before this row, or -after == before the next slot.
+                const insertAt = half === 'before' ? idx : idx + 1
+                // reorderPost's toIndex is measured after removal, so shift down
+                // by one when the dragged post sat before the insertion point.
+                const toIndex = fromIndex < insertAt ? insertAt - 1 : insertAt
+                reorderPost(thread.id, fromIndex, toIndex)
+              }}
               onDelete={() => deletePost(post.id)}
             />
           ))}

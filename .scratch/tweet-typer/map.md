@@ -144,21 +144,44 @@ Hierarchy: **Project › Thread › Post.**
   weigh 2 per #01). **New seam:** extended `InsertionContext` with `transformSelection(fn)` (in-place
   selection restyle, no-op on empty) — the primitive the Styles tab consumes, available to later tickets.
   Verified: `pnpm test` 43/43, `pnpm build` clean, `oxlint` exit 0; not committed.
+- [Templates (snippet insertion)](../issues/12-templates.md) — **(revised after review to match the
+  prototype)** Templates are managed in the **left navigator** (a "Templates" group under Projects),
+  and a template **behaves like a Post**: selecting one opens it in the **center editor** with the
+  identical Lexical surface + weighted counter (not a side form — the first right-panel-tab cut was
+  reverted). Each nav row has a **copy button (⧉)** → `navigator.clipboard.writeText` + a 1.5 s
+  "copied" flash, plus rename/delete; `+` creates & opens. Selection model: `SelectionContext` gained
+  `selectedTemplateId` **mutually exclusive** with `selectedThreadId`. Refactor: the Lexical body +
+  overlay + ruler-gauge were extracted from `ThreadEditor` into **`src/WeightedTextEditor.tsx`**
+  (`EditableTextBody`/`RulerGauge`/`parseWeighted`) so `PostEditor` and the new
+  **`src/TemplateEditor.tsx`** share one editing surface. **Manual save**: the template edits into a
+  local draft and only persists via `updateTemplate` on **Save** (which does not close the editor); a
+  title-bar pill shows `● unsaved`/`saved`. A `⧉ copy` chip in the card footer copies to clipboard (plus the nav-row
+  quick-copy). The #10 insertion seam works into templates too. **Drag-and-drop (native HTML5, no
+  lib):** templates are draggable to reorder — added a **`Template.order`** field + **`reorderTemplate(id,
+  beforeId)`**; threads are draggable to reorder **and move across projects** (replacing ▲▼) via
+  **`moveThread(threadId, toProjectId, beforeThreadId)`**, with project headers/empty zones as drop
+  targets. MVP = snippets only; whole-thread skeletons stay fog. Verified: `pnpm build` clean, `oxlint
+  src/` exit 0, `pnpm test` **52/52** (+9 for moveThread/reorderTemplate); not committed. Files:
+  `Navigator.tsx`, `TemplateEditor.tsx` (new), `WeightedTextEditor.tsx` (new), `ThreadEditor.tsx`,
+  `SelectionContext.tsx`, `types.ts`, `store.ts`, `StoreContext.tsx`, `store.test.ts`.
 
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14.**
-  **07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter, and 11 symbol browser+Styles
-  are now resolved.** Remaining frontier — **12 templates, 13 settings/import-export,
-  14 copy+Open-in-X** — all unblocked and independently takeable (they consume `useStore()`; no
+  **07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter, 11 symbol browser+Styles,
+  and 12 templates are now resolved.** Remaining frontier — **13 settings/import-export,
+  14 copy+Open-in-X** — both unblocked and independently takeable (they consume `useStore()`; no
   ordering forced among them). Seams now live: `useSelection()` (`src/lib/SelectionContext.tsx`,
   active thread) and the **cursor-aware insertion seam** `useInsertion()` in
   `src/lib/InsertionContext.tsx` — `insertAtCursor()` (established by 10) **plus `transformSelection()`
-  (added by 11** for in-place selection restyle). **12 inserts templates through `insertAtCursor`** via
-  `onMouseDown`+`preventDefault`. Note for 13: the editor already reads `settings.charLimit ?? 280`, so
-  wiring the global-limit setting lights up the counter.
+  (added by 11** for in-place selection restyle). **12 put Templates in the left nav and made a template
+  edit in the center pane like a Post** — extracting the shared editing surface into
+  `src/WeightedTextEditor.tsx` (consumed by both `PostEditor` and the new `TemplateEditor`) and adding
+  `selectedTemplateId` to `SelectionContext` (mutually exclusive with `selectedThreadId`); Symbols/Styles
+  insert into a template via the same #10 seam. Note for 13: the editor already reads
+  `settings.charLimit ?? 280`, so wiring the global-limit setting lights up the counter.
 - Whole-thread **template skeletons** (MVP ships snippet templates only).
 - **Per-thread** char-limit override (MVP ships a single global limit).
 - **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,

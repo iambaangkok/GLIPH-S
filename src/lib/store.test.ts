@@ -23,8 +23,10 @@ import {
   getState,
   hydrate,
   importStore,
+  moveThread,
   renameProject,
   reorderPost,
+  reorderTemplate,
   reorderThread,
   updatePost,
   updateSettings,
@@ -360,5 +362,120 @@ describe('reorderPost', () => {
 
     const threadIds = getState().projects[projectId].threadIds
     expect(threadIds).toEqual([t2.id, t3.id, t1.id])
+  })
+})
+
+describe('moveThread (drag reorder + cross-project)', () => {
+  it('reorders within a project by inserting before a sibling', () => {
+    const projectId = getDefaultProjectId()
+    const t1 = createThread(projectId, 'A')
+    const t2 = createThread(projectId, 'B')
+    const t3 = createThread(projectId, 'C')
+
+    // Move C before A → [C, A, B]
+    moveThread(t3.id, projectId, t1.id)
+
+    expect(getState().projects[projectId].threadIds).toEqual([t3.id, t1.id, t2.id])
+  })
+
+  it('appends within a project when beforeThreadId is null', () => {
+    const projectId = getDefaultProjectId()
+    const t1 = createThread(projectId, 'A')
+    const t2 = createThread(projectId, 'B')
+
+    moveThread(t1.id, projectId, null)
+
+    expect(getState().projects[projectId].threadIds).toEqual([t2.id, t1.id])
+  })
+
+  it('moves a thread across projects and updates its projectId', () => {
+    const src = getDefaultProjectId()
+    const dst = createProject('Destination').id
+    const t1 = createThread(src, 'stays')
+    const t2 = createThread(src, 'moves')
+    const d1 = createThread(dst, 'target')
+
+    // Move t2 into dst, before d1.
+    moveThread(t2.id, dst, d1.id)
+
+    expect(getState().projects[src].threadIds).toEqual([t1.id])
+    expect(getState().projects[dst].threadIds).toEqual([t2.id, d1.id])
+    expect(getState().threads[t2.id].projectId).toBe(dst)
+  })
+
+  it('cross-project move survives a reload', () => {
+    const src = getDefaultProjectId()
+    const dst = createProject('Persisted destination').id
+    const t = createThread(src, 'traveller')
+
+    moveThread(t.id, dst, null)
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.projects[src].threadIds).toEqual([])
+    expect(after.projects[dst].threadIds).toEqual([t.id])
+    expect(after.threads[t.id].projectId).toBe(dst)
+  })
+
+  it('is a no-op when dropping a thread on itself', () => {
+    const projectId = getDefaultProjectId()
+    const t1 = createThread(projectId, 'A')
+    const t2 = createThread(projectId, 'B')
+    const before = [...getState().projects[projectId].threadIds]
+
+    moveThread(t1.id, projectId, t1.id)
+
+    expect(getState().projects[projectId].threadIds).toEqual(before)
+    void t2
+  })
+})
+
+describe('reorderTemplate (drag reorder)', () => {
+  it('assigns ascending order on create', () => {
+    const a = createTemplate('A', '1')
+    const b = createTemplate('B', '2')
+    expect(a.order).toBe(0)
+    expect(b.order).toBe(1)
+  })
+
+  it('moves a template before another and renormalizes order', () => {
+    const a = createTemplate('A', '1')
+    const b = createTemplate('B', '2')
+    const c = createTemplate('C', '3')
+
+    // Move C before A → [C, A, B]
+    reorderTemplate(c.id, a.id)
+
+    const ordered = Object.values(getState().templates)
+      .sort((x, y) => x.order - y.order)
+      .map((t) => t.id)
+    expect(ordered).toEqual([c.id, a.id, b.id])
+    expect(getState().templates[c.id].order).toBe(0)
+    expect(getState().templates[b.id].order).toBe(2)
+  })
+
+  it('appends to the end when beforeId is null', () => {
+    const a = createTemplate('A', '1')
+    const b = createTemplate('B', '2')
+
+    reorderTemplate(a.id, null)
+
+    const ordered = Object.values(getState().templates)
+      .sort((x, y) => x.order - y.order)
+      .map((t) => t.id)
+    expect(ordered).toEqual([b.id, a.id])
+  })
+
+  it('reordered templates survive a reload', () => {
+    const a = createTemplate('A', '1')
+    const b = createTemplate('B', '2')
+    reorderTemplate(b.id, a.id)
+    forceFlush()
+
+    const after = simulateReload()
+    const ordered = Object.values(after.templates)
+      .sort((x, y) => x.order - y.order)
+      .map((t) => t.id)
+    expect(ordered).toEqual([b.id, a.id])
   })
 })

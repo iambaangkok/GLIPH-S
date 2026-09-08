@@ -49,3 +49,15 @@ Built by a Sonnet subagent; not committed (leaves changes in the working tree pe
 - `pnpm test`: **27/27** (20 original + 7 new `reorderPost`).
 - `pnpm build` (`tsc -b && vite build`): clean, zero TS errors, 498 kB bundle.
 - `pnpm exec oxlint`: exit 0 (warnings only — 4 pre-existing `only-export-components`, 1 `set-state-in-effect` for the external-sync pattern).
+
+### Addendum — post reordering by drag (follow-up, ticket 12 session)
+
+The ▲▼ reorder buttons were replaced with **drag-to-reorder** (native HTML5 DnD), consistent with the
+thread/template dragging added in #12. Each PostEditor header has a `⠿` **drag handle** (only the grip
+starts a drag); the card is the drop target and shows an inset-accent hairline for insert-before/after
+(pointer vs card midpoint). Reorder is **within-thread only** — by construction, since the center pane
+only ever renders the selected thread's posts and drops call `reorderPost(thread.id, from, to)` (a
+`POST_MIME` payload keeps it from mixing with thread/template drags). The index conversion accounts for
+`reorderPost`'s after-removal `toIndex`. Shared DnD helpers extracted to `src/lib/dnd.ts`
+(`dropHalf`/`dropShadow`/MIME constants), also used by the navigator. Verified: `pnpm build` clean,
+`oxlint src/` exit 0, `pnpm test` 52/52.
