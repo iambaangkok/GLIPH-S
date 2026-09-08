@@ -96,14 +96,21 @@ Hierarchy: **Project › Thread › Post.**
   rules + dingbat micro-marks, stadium pill chips, ruler-gauge counter. **Tokens + Tailwind, no
   component library.** All variants + two iteration rounds preserved in
   `prototypes/06-visual-theme.html`; full token sheet in the ticket answer.
+- [App scaffold & V7.4 design tokens](../issues/07-scaffold-and-tokens.md) — Vite + React 19 +
+  TS 6 + **Tailwind v4** (`@tailwindcss/vite` + `@theme`) + Lexical 0.50 + twitter-text 3.1.0 +
+  nanoid, via **pnpm**. V7.4 tokens encoded as both `:root` CSS vars and Tailwind `@theme` in
+  `src/index.css` (seeded from the prototype). Variant-A 3-pane shell with empty panes in
+  `src/App.tsx`; thin `tt:`-namespaced localStorage layer skeleton in `src/lib/storage.ts`
+  (`SCHEMA_VERSION = 1`). `tsc -b && vite build` clean; `pnpm dev` on :5173. Unblocks 08–14.
 
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
-- **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14**
-  (see the frontier). Wired: 07 scaffold+tokens blocks everything; 08 persistence; then 09 navigator,
+- **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14.**
+  **07 scaffold+tokens is now resolved**, unblocking the rest: 08 persistence; then 09 navigator,
   10 editor+counter, 11 symbol browser+Styles, 12 templates, 13 settings/import-export, 14 copy+Open-in-X.
+  The frontier now leads with **08 persistence** (still blocks 09–14).
 - Whole-thread **template skeletons** (MVP ships snippet templates only).
 - **Per-thread** char-limit override (MVP ships a single global limit).
 - **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,

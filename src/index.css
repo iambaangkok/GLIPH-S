@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/* ── V7.4 "Kinetic Mono / Instrument" — design tokens ─────────────────────
+   Warm near-black + cream monochrome system with single amber signal.
+   Seeded from .scratch/tweet-typer/prototypes/06-visual-theme.html .app--v74
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Color */
+  --bg:        #141310;
+  --surface:   #1b1914;
+  --surface-2: #100f0c;
+  --fg:        #efe9db;
+  --muted:     #8b8577;
+  --line:      #2d2a23;
+  --warn:      #e8a13c;          /* single amber signal — over-limit only  */
+  --accent:    #efe9db;          /* interactive accent = cream (monochrome) */
+  --sel:       rgba(239,233,219,.10);
+  --over:      rgba(232,161,60,.20);
+
+  /* Layout */
+  --radius:    6px;
+  --topbar-h:  40px;
+  --nav-w:     200px;
+  --panel-w:   220px;
+
+  /* Typography */
+  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-body:    'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, monospace;
+  --font-cjk:     'Noto Sans JP', sans-serif;
+
+  color-scheme: dark;
+}
+
+/* ── Tailwind theme extension via CSS custom properties ─────────────────── */
+@theme {
+  --color-bg:        #141310;
+  --color-surface:   #1b1914;
+  --color-surface-2: #100f0c;
+  --color-fg:        #efe9db;
+  --color-muted:     #8b8577;
+  --color-line:      #2d2a23;
+  --color-warn:      #e8a13c;
+  --color-accent:    #efe9db;
+
+  --font-family-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-family-body:    'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-family-mono:    'IBM Plex Mono', ui-monospace, monospace;
+  --font-family-cjk:     'Noto Sans JP', sans-serif;
+
+  --border-radius-app: 6px;
+}
+
+/* ── Base reset ─────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── V7.4 halftone dot field behind editor ──────────────────────────────── */
+.editor-halftone {
+  background-image: radial-gradient(rgba(239,233,219,.07) 22%, transparent 24%);
+  background-size: 7px 7px;
+}
+
+/* ── V7.4 halftone band in symbol panel ─────────────────────────────────── */
+.panel-halftone-band {
+  height: 22px;
+  background: radial-gradient(var(--muted) 26%, transparent 28%) 0 0 / 6px 6px;
+  opacity: 0.55;
+}
+
+/* ── Ruler hairline ─────────────────────────────────────────────────────── */
+.ruler {
+  height: 7px;
+  background:
+    linear-gradient(var(--line), var(--line)) left bottom / 100% 1px no-repeat,
+    repeating-linear-gradient(
+      90deg,
+      var(--line) 0 1px,
+      transparent 1px 13px
+    ) left bottom / 100% 6px no-repeat;
+}
+
+/* ── Mono label utility ─────────────────────────────────────────────────── */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Stadium pill chip ──────────────────────────────────────────────────── */
+.chip {
+  display: inline-block;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.chip--accent {
+  color: var(--accent);
+  border-color: var(--accent);
+}
