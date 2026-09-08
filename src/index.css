@@ -81,6 +81,29 @@ body {
   background-size: 7px 7px;
 }
 
+/* ── V7.4 minimal center scrollbar — thin, dimmed amber thumb ────────────── */
+.center-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(239, 233, 219, 0.14) transparent;
+}
+.center-scroll::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+.center-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.center-scroll::-webkit-scrollbar-thumb {
+  background: rgba(239, 233, 219, 0.12);
+  border-radius: 999px;
+}
+.center-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(239, 233, 219, 0.24);
+}
+.center-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* ── V7.4 halftone band in symbol panel ─────────────────────────────────── */
 .panel-halftone-band {
   height: 22px;
@@ -121,6 +144,7 @@ body {
   text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
+  user-select: none;
 }
 
 .chip--accent {
@@ -134,6 +158,7 @@ body {
 }
 button.chip {
   background: none;
+  cursor: pointer;
 }
 button.chip:hover:not(:disabled) {
   color: var(--fg);
@@ -171,6 +196,7 @@ button.chip:disabled {
   cursor: pointer;
   font-size: 10px;
   line-height: 1;
+  user-select: none;
   transition: color 0.12s, background 0.12s, border-color 0.12s;
 }
 .icon-btn:hover:not(:disabled) {
@@ -210,6 +236,29 @@ button.chip:disabled {
 }
 .nav-project-toggle:hover .label-mono {
   color: var(--fg);
+}
+
+/* Row / project action clusters — hidden until hover or selection, so the
+   navigator reads as clean prototype-style rows (V7.4). Kept in the layout
+   (visibility, not display) so rows don't shift. */
+.row-actions,
+.proj-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.nav-row:hover .row-actions,
+.nav-row[data-selected='true'] .row-actions,
+.nav-project:hover .proj-actions,
+.nav-project:focus-within .proj-actions {
+  opacity: 1;
+}
+/* Keyboard access: reveal when a hidden control is focused. */
+.row-actions:focus-within,
+.proj-actions:focus-within {
+  opacity: 1;
 }
 
 /* ── Modal / dialog ─────────────────────────────────────────────────────── */

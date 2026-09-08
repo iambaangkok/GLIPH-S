@@ -24,6 +24,8 @@ import {
   hydrate,
   importStore,
   renameProject,
+  reorderPost,
+  reorderThread,
   updatePost,
   updateSettings,
   type StoreState,
@@ -277,5 +279,86 @@ describe('export → import replace round-trip', () => {
     importStore(padded)
 
     expect(getState().symbols.recents).toHaveLength(50)
+  })
+})
+
+describe('reorderPost', () => {
+  it('moves a post within its thread (forward)', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Reorder test thread')
+    const p1 = createPost(thread.id, 'Post 1')
+    const p2 = createPost(thread.id, 'Post 2')
+    const p3 = createPost(thread.id, 'Post 3')
+
+    reorderPost(thread.id, 0, 2)
+
+    const postIds = getState().threads[thread.id].postIds
+    expect(postIds).toEqual([p2.id, p3.id, p1.id])
+  })
+
+  it('moves a post within its thread (backward)', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Reorder test thread 2')
+    const p1 = createPost(thread.id, 'Post A')
+    const p2 = createPost(thread.id, 'Post B')
+    const p3 = createPost(thread.id, 'Post C')
+
+    reorderPost(thread.id, 2, 0)
+
+    const postIds = getState().threads[thread.id].postIds
+    expect(postIds).toEqual([p3.id, p1.id, p2.id])
+  })
+
+  it('is a no-op when fromIndex === toIndex', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Reorder no-op')
+    const p1 = createPost(thread.id, 'P1')
+    const p2 = createPost(thread.id, 'P2')
+    const before = [...getState().threads[thread.id].postIds]
+
+    reorderPost(thread.id, 1, 1)
+
+    expect(getState().threads[thread.id].postIds).toEqual(before)
+    void p1; void p2  // suppress unused var warning
+  })
+
+  it('is a no-op when index is out of range', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Reorder OOB')
+    createPost(thread.id, 'Only post')
+    const before = [...getState().threads[thread.id].postIds]
+
+    reorderPost(thread.id, 0, 5)
+
+    expect(getState().threads[thread.id].postIds).toEqual(before)
+  })
+
+  it('throws when thread does not exist', () => {
+    expect(() => reorderPost('nonexistent', 0, 1)).toThrow('Thread nonexistent not found')
+  })
+
+  it('reordered posts survive a reload', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Persist reorder')
+    const p1 = createPost(thread.id, 'First')
+    const p2 = createPost(thread.id, 'Second')
+
+    reorderPost(thread.id, 0, 1)
+    forceFlush()
+
+    const after = simulateReload()
+    expect(after.threads[thread.id].postIds).toEqual([p2.id, p1.id])
+  })
+
+  it('reorderThread still works as before (regression guard)', () => {
+    const projectId = getDefaultProjectId()
+    const t1 = createThread(projectId, 'T1')
+    const t2 = createThread(projectId, 'T2')
+    const t3 = createThread(projectId, 'T3')
+
+    reorderThread(projectId, 0, 2)
+
+    const threadIds = getState().projects[projectId].threadIds
+    expect(threadIds).toEqual([t2.id, t3.id, t1.id])
   })
 })

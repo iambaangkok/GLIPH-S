@@ -116,45 +116,43 @@ function ThreadRow({
         {label}
       </span>
 
-      {/* reorder controls */}
-      <button
-        type="button"
-        aria-label="Move thread up"
-        className="icon-btn"
-        disabled={isFirst}
-        onClick={(e) => { e.stopPropagation(); void handleMoveUp() }}
-      >
-        ▲
-      </button>
-      <button
-        type="button"
-        aria-label="Move thread down"
-        className="icon-btn"
-        disabled={isLast}
-        onClick={(e) => { e.stopPropagation(); void handleMoveDown() }}
-      >
-        ▼
-      </button>
-
-      {/* rename */}
-      <button
-        type="button"
-        aria-label="Rename thread"
-        className="icon-btn"
-        onClick={(e) => { e.stopPropagation(); void handleRename() }}
-      >
-        ✎
-      </button>
-
-      {/* delete */}
-      <button
-        type="button"
-        aria-label="Delete thread"
-        className="icon-btn icon-btn--danger"
-        onClick={(e) => { e.stopPropagation(); void handleDelete() }}
-      >
-        ×
-      </button>
+      {/* action cluster — revealed on row hover / selection */}
+      <span className="row-actions">
+        <button
+          type="button"
+          aria-label="Move thread up"
+          className="icon-btn"
+          disabled={isFirst}
+          onClick={(e) => { e.stopPropagation(); void handleMoveUp() }}
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          aria-label="Move thread down"
+          className="icon-btn"
+          disabled={isLast}
+          onClick={(e) => { e.stopPropagation(); void handleMoveDown() }}
+        >
+          ▼
+        </button>
+        <button
+          type="button"
+          aria-label="Rename thread"
+          className="icon-btn"
+          onClick={(e) => { e.stopPropagation(); void handleRename() }}
+        >
+          ✎
+        </button>
+        <button
+          type="button"
+          aria-label="Delete thread"
+          className="icon-btn icon-btn--danger"
+          onClick={(e) => { e.stopPropagation(); void handleDelete() }}
+        >
+          ×
+        </button>
+      </span>
     </div>
   )
 }
@@ -215,8 +213,13 @@ function ProjectGroup({ project, isLast }: ProjectGroupProps) {
 
   const threadIds = project.threadIds
 
+  // Glyph reflects collapse state: filled ◈ when open, hollow ◇ when collapsed.
+  const glyph = collapsed ? '◇' : '◈'
+  // Active project = the one holding the currently selected thread (prototype `.sel`).
+  const isActive = selectedThreadId !== null && project.threadIds.includes(selectedThreadId)
+
   return (
-    <div style={{ marginBottom: isLast ? 0 : 4 }}>
+    <div className="nav-project" style={{ marginBottom: isLast ? 0 : 4 }}>
       {/* Project header row */}
       <div
         style={{
@@ -226,16 +229,17 @@ function ProjectGroup({ project, isLast }: ProjectGroupProps) {
           marginBottom: 2,
         }}
       >
-        {/* collapse toggle + label */}
+        {/* collapse toggle + label (glyph + name — prototype `◈ Launch teasers`) */}
         <button
           type="button"
           aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
           className="nav-project-toggle"
           onClick={() => setCollapsed((c) => !c)}
           style={{
-            background: 'none',
+            background: isActive ? 'var(--sel)' : 'none',
             border: 'none',
-            padding: 0,
+            padding: '3px 6px',
+            borderRadius: 'var(--radius)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -244,45 +248,55 @@ function ProjectGroup({ project, isLast }: ProjectGroupProps) {
             minWidth: 0,
           }}
         >
-          <span className="label-mono" style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {collapsed ? '▸' : '▾'} {label}
+          <span
+            className="label-mono"
+            style={{
+              flex: 1,
+              textAlign: 'left',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              color: isActive ? 'var(--accent)' : undefined,
+              fontWeight: isActive ? 700 : undefined,
+            }}
+          >
+            <span style={{ marginRight: 6, opacity: isActive ? 1 : 0.7 }}>{glyph}</span>{label}
           </span>
         </button>
 
-        {/* add thread chip */}
-        <button
-          type="button"
-          aria-label={`Add thread to ${label}`}
-          onClick={() => void handleAddThread()}
-          className="chip"
-          style={{ flexShrink: 0 }}
-        >
-          + thread
-        </button>
-
-        {/* rename — hidden for Unfiled (locked) */}
-        {!isDefault && (
+        {/* action cluster — revealed on project hover */}
+        <span className="proj-actions">
           <button
             type="button"
-            aria-label={`Rename project ${label}`}
+            aria-label={`Add thread to ${label}`}
             className="icon-btn"
-            onClick={() => void handleRenameProject()}
+            onClick={() => void handleAddThread()}
           >
-            ✎
+            +
           </button>
-        )}
 
-        {/* delete — hidden for Unfiled (locked) */}
-        {!isDefault && (
-          <button
-            type="button"
-            aria-label={`Delete project ${label}`}
-            className="icon-btn icon-btn--danger"
-            onClick={() => void handleDeleteProject()}
-          >
-            ×
-          </button>
-        )}
+          {/* rename / delete — hidden for Unfiled (locked) */}
+          {!isDefault && (
+            <button
+              type="button"
+              aria-label={`Rename project ${label}`}
+              className="icon-btn"
+              onClick={() => void handleRenameProject()}
+            >
+              ✎
+            </button>
+          )}
+          {!isDefault && (
+            <button
+              type="button"
+              aria-label={`Delete project ${label}`}
+              className="icon-btn icon-btn--danger"
+              onClick={() => void handleDeleteProject()}
+            >
+              ×
+            </button>
+          )}
+        </span>
       </div>
 
       {/* Thread list */}
@@ -320,9 +334,6 @@ function ProjectGroup({ project, isLast }: ProjectGroupProps) {
           })}
         </div>
       )}
-
-      {/* hairline rule between project groups */}
-      {!isLast && <div className="ruler" style={{ margin: '8px 0 6px' }} />}
     </div>
   )
 }
@@ -365,10 +376,11 @@ export function Navigator() {
         <button
           type="button"
           aria-label="Create new project"
+          title="New project"
           onClick={() => void handleAddProject()}
           className="chip chip--accent"
         >
-          + project
+          +
         </button>
       </div>
 
@@ -381,6 +393,9 @@ export function Navigator() {
             isLast={idx === projects.length - 1}
           />
         ))}
+
+        {/* single terminal hairline — closes the projects section (V7.4) */}
+        <div className="ruler" style={{ margin: '10px 0 0' }} />
       </div>
     </div>
   )

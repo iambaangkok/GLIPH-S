@@ -120,18 +120,32 @@ Hierarchy: **Project › Thread › Post.**
   (`useSelection()`, non-persisted) — the seam ticket 10's editor reads to know the active thread.
   `App.tsx` wraps `<SelectionProvider>` + mounts `<Navigator/>`. Verified: `pnpm build` clean,
   `pnpm test` 20/20, `oxlint` exit 0. Built by a Sonnet subagent; not committed.
+- [Thread & Post editor + weighted counter (center pane)](../issues/10-editor-and-counter.md) —
+  `src/ThreadEditor.tsx` replaces the center placeholder: Lexical `contenteditable` per Post with
+  **plain-text `Post.content` canonical** (re-seeded via `history-merge`, decorations render-only,
+  never persisted); reads active thread from `useSelection()`. Weighted count via `twitter-text`
+  `parseTweet(text, { maxWeightedTweetLength: settings.charLimit ?? 280 })`; **ruler-gauge** counter +
+  **amber over-limit shading** as an absolutely-positioned transparent-text overlay split at
+  `validRangeEnd`. Add/remove/**reorder** Posts — filled the store gap `reorderPost(threadId, from, to)`
+  (mirrors `reorderThread`, wired through `StoreAPI`, +7 tests). Established the **cursor-aware insertion
+  seam** #11/#12 consume: ephemeral `InsertionContext` (`useInsertion()`, `insertAtCursor()`) tracking the
+  last-focused Lexical editor; callers use `onMouseDown`+`preventDefault`. `App.tsx` wraps
+  `<InsertionProvider>`. Verified: `pnpm test` 27/27, `pnpm build` clean, `oxlint` exit 0. Built by a
+  Sonnet subagent; not committed.
 
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14.**
-  **07 scaffold+tokens, 08 persistence, and 09 navigator are now resolved.** With the store live
-  and the navigator driving selection via `SelectionContext`, the frontier is the remaining pane
-  tickets — **10 editor+counter, 11 symbol browser+Styles, 12 templates, 13 settings/import-export,
+  **07 scaffold+tokens, 08 persistence, 09 navigator, and 10 editor+counter are now resolved.**
+  Remaining frontier — **11 symbol browser+Styles, 12 templates, 13 settings/import-export,
   14 copy+Open-in-X** — all unblocked and independently takeable (they consume `useStore()`; no
-  ordering forced among them). Note for 10: read the active thread from `useSelection()`
-  (`src/lib/SelectionContext.tsx`), the seam 09 established.
+  ordering forced among them). Seams now live: `useSelection()` (`src/lib/SelectionContext.tsx`,
+  active thread) and the **cursor-aware insertion seam** `useInsertion()`/`insertAtCursor()`
+  (`src/lib/InsertionContext.tsx`, established by 10) — **11 and 12 insert symbols/templates through
+  it** via `onMouseDown`+`preventDefault`. Note for 13: the editor already reads
+  `settings.charLimit ?? 280`, so wiring the global-limit setting lights up the counter.
 - Whole-thread **template skeletons** (MVP ships snippet templates only).
 - **Per-thread** char-limit override (MVP ships a single global limit).
 - **Import merge semantics** (MVP ships replace-on-import only; merge-by-id is a harder,

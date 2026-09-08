@@ -38,6 +38,7 @@ import {
   onQuotaWarning,
   removeFavorite,
   renameProject,
+  reorderPost,
   reorderThread,
   subscribe,
   updatePost,
@@ -71,6 +72,7 @@ export interface StoreAPI {
   createPost: typeof createPost
   updatePost: typeof updatePost
   deletePost: typeof deletePost
+  reorderPost: typeof reorderPost
 
   // Templates
   createTemplate: typeof createTemplate
@@ -134,6 +136,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     createPost,
     updatePost,
     deletePost,
+    reorderPost,
     createTemplate,
     updateTemplate,
     deleteTemplate,

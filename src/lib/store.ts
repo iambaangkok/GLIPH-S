@@ -418,6 +418,36 @@ export function reorderThread(projectId: string, fromIndex: number, toIndex: num
   })
 }
 
+/**
+ * Reorder a Post within its Thread by moving it from one index to another.
+ * Both indices are 0-based positions within `thread.postIds`.
+ * No-op if fromIndex === toIndex or either index is out of range.
+ */
+export function reorderPost(threadId: string, fromIndex: number, toIndex: number): void {
+  const thread = state.threads[threadId]
+  if (!thread) throw new Error(`Thread ${threadId} not found`)
+  const ids = thread.postIds
+  if (
+    fromIndex === toIndex ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= ids.length ||
+    toIndex >= ids.length
+  ) return
+
+  const next = [...ids]
+  const [moved] = next.splice(fromIndex, 1)
+  next.splice(toIndex, 0, moved)
+
+  mutate('threads', () => {
+    state.threads[threadId] = {
+      ...thread,
+      postIds: next,
+      updatedAt: now(),
+    }
+  })
+}
+
 // ── Post CRUD ─────────────────────────────────────────────────────────────────
 
 /**
