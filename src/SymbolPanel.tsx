@@ -4,7 +4,7 @@
  * Two tabs (mutually exclusive, per the layout decision in #05):
  *
  *   • Symbols — curated categories from the #02 dataset + search + Favorites +
- *     Recents (capped at 50 by the store). Clicking a glyph inserts it at the
+ *     Recents (capped at 6 by the store). Clicking a glyph inserts it at the
  *     cursor of the last-focused Post editor via the #10 insertion seam and
  *     records it in Recents. A hover star pins/unpins a Favorite.
  *

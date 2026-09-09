@@ -7,7 +7,7 @@
  *   • Writes are debounced 250 ms per touched collection and force-flushed
  *     on `visibilitychange` (hidden) and `beforeunload`.
  *   • `StorageQuotaError` is caught → warn + preserve in-memory + surface.
- *   • `symbols.recents` is capped at 24.
+ *   • `symbols.recents` is capped at 6.
  *   • "Unfiled" default Project is seeded on first load and is non-deletable
  *     and non-renameable.
  *
@@ -43,7 +43,7 @@ import type {
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const UNFILED_NAME    = 'Unfiled'
-const RECENTS_CAP     = 24
+const RECENTS_CAP     = 6
 const DEBOUNCE_MS     = 250
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -718,7 +718,7 @@ export function reorderFavorite(symbol: string, beforeSymbol: string | null): vo
 }
 
 /**
- * Record a recently used symbol. Most-recent first; capped at 24.
+ * Record a recently used symbol. Most-recent first; capped at 6.
  */
 export function addRecent(symbol: string): void {
   mutate('symbols', () => {

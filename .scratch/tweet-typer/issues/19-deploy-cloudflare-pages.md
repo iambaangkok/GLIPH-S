@@ -167,6 +167,14 @@ wrangler assets config → commit `8a2489d`.
 - Deploy = push to `master` (auto-build). Root domain `iambaangkok.dev` is on Cloudflare and free
   to host future project subdomains.
 
+### Post-launch tweaks
+
+- **Version badge** — small dimmed `v0.1.0` after the `GLIPH-S` wordmark in the top bar
+  (`src/App.tsx`; muted, 9px, opacity 0.55).
+- **Recents cap 24 → 6** — `RECENTS_CAP` in `src/lib/store.ts` (flows to both `SymbolPanel` and
+  `GlyphDock` Recent rows); updated the two cap tests + stale docstrings. `pnpm build`/`test`
+  (63/63)/`lint` all clean.
+
 ### Notes / open fog
 
 - The app fetches fonts from `fonts.googleapis.com` at runtime — fine on Pages, but note it for any

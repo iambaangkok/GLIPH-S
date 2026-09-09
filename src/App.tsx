@@ -60,6 +60,18 @@ function TopBar({ mobile }: { mobile?: boolean }): JSX.Element {
       <span style={{ color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.18em' }}>
         GLIPH-S
       </span>
+      <span
+        style={{
+          marginLeft: 6,
+          color: 'var(--muted)',
+          opacity: 0.55,
+          fontSize: 9,
+          fontWeight: 400,
+          letterSpacing: '0.08em',
+        }}
+      >
+        v0.1.0
+      </span>
       <div style={{ flex: 1 }} />
       <SettingsMenu sheet={mobile} />
     </header>

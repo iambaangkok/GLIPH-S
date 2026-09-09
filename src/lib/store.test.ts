@@ -4,7 +4,7 @@
  * Asserts:
  *   1. Entities survive a simulated reload (write → re-hydrate → read).
  *   2. "Unfiled" project is seeded on first load and remains non-deletable/renameable.
- *   3. symbols.recents is capped at 24.
+ *   3. symbols.recents is capped at 6.
  *   4. export→import replace round-trip preserves all data.
  */
 
@@ -163,14 +163,14 @@ describe('Entity round-trip through localStorage (reload survival)', () => {
   })
 })
 
-describe('symbols.recents cap at 24', () => {
-  it('caps recents at 24 entries', () => {
+describe('symbols.recents cap at 6', () => {
+  it('caps recents at 6 entries', () => {
     // Add 40 unique symbols
     for (let i = 0; i < 40; i++) {
       addRecent(`sym-${i}`)
     }
     const { recents } = getState().symbols
-    expect(recents).toHaveLength(24)
+    expect(recents).toHaveLength(6)
     // Most-recent first
     expect(recents[0]).toBe('sym-39')
   })
@@ -266,7 +266,7 @@ describe('export → import replace round-trip', () => {
     expect(() => importStore(JSON.stringify(env))).toThrow('newer than code')
   })
 
-  it('imported recents are capped at 24', () => {
+  it('imported recents are capped at 6', () => {
     // Build a state with 80 recents and export it.
     for (let i = 0; i < 80; i++) addRecent(`s${i}`)
     // Manually jam 80 into the exported envelope.
@@ -283,7 +283,7 @@ describe('export → import replace round-trip', () => {
     hydrate()
     importStore(padded)
 
-    expect(getState().symbols.recents).toHaveLength(24)
+    expect(getState().symbols.recents).toHaveLength(6)
   })
 })
 
