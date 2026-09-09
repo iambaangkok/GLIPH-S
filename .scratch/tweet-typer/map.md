@@ -228,16 +228,39 @@ Hierarchy: **Project › Thread › Post.**
   **none auto-collapse** (both open by default); keyboard-open compresses the panes with the right
   panel still serving glyphs. Unblocks build **#18**.
 
+- [Build responsive / mobile layout](../issues/18-responsive-layout-build.md) — **shipped the full
+  responsive build** per #16/#17. Single 768px breakpoint flips two structurally-different shells in
+  React (new `useMediaQuery`, `MOBILE_QUERY`) rather than in CSS (mobile *reparents* the symbol
+  browser, which CSS can't do); both stay under the existing 1080 cap + letterbox. **Desktop (≥768):**
+  both sidebars now user-collapsible to a 40px rail (`--rail-w`, new `CollapsiblePane` + `.pane-hdr`/
+  `.pane-rail`), **default open** so wide screens read unchanged. **Mobile (<768):** `MobileShell` =
+  retained top bar + `.tabbar` (**Threads · Editor**, default Editor) + full-screen panes; Threads tab
+  = full `<Navigator/>` (Templates already nested → no 4th tab); Editor tab = post stack + new
+  **`src/GlyphDock.tsx`** three-state dock (**handle → strip(44px Fav+Recent, `tt:ui`-collapsible,
+  `insertAtCursor`) → browse(reuses `<SymbolPanel/>` @70vh, keyboard dismisses)**). Settings →
+  `.popover--sheet` near-full-width (new `sheet` prop). ≥44px touch targets scoped to a
+  `.touch-region`. Ruler-gauge/amber overlay untouched. Verified `pnpm build` clean, `pnpm test`
+  **63/63**, `oxlint src/` exit 0; not committed. Deferred as cosmetic: the prototype's internal
+  Threads|Templates segment (full Navigator already satisfies the settled "single navigator" decision).
+
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
+
+- **Shipping / deployment** — the effort now extends past the original "locked MVP spec"
+  destination into getting GLIPH-S live. First live ticket:
+  [Deploy GLIPH-S as a static site on Cloudflare Pages (custom domain)](../issues/19-deploy-cloudflare-pages.md)
+  — decide domain + **subdomain vs subpath** (drives the Vite `base`) + deploy trigger, then buy the
+  domain and provision the Pages project. Currently the sole open frontier ticket.
 
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14, and
   every one of 07–14 is now resolved** (07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter,
   11 symbol browser+Styles, 12 templates, 13 settings/import-export, 14 copy+Open-in-X). The original
   MVP execution set is complete; later polish/UX lives in tickets 15–16 — **both now resolved**.
-  Responsive work continues via **16's graduated children: prototype #17 — now resolved — → build
-  #18, now the sole open child and the frontier** (unblocked; interaction spec captured in #17). Seams live: `useSelection()`
+  Responsive work is **complete: 16's graduated children — prototype #17 → build #18 — are both
+  now resolved.** #18 shipped the mobile 2-tab shell + in-editor glyph dock, desktop collapsible
+  sidebars, mobile settings sheet, and ≥44px touch targets. **No open children remain — the map is
+  complete.** Seams live: `useSelection()`
   (`src/lib/SelectionContext.tsx`, active thread — **now persisted to the `tt:ui` store** added by 15)
   and the **cursor-aware insertion seam** `useInsertion()` in
   `src/lib/InsertionContext.tsx` — `insertAtCursor()` (established by 10) **plus `transformSelection()`

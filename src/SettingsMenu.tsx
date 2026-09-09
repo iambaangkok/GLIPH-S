@@ -31,7 +31,7 @@ function readLimit(settings: Record<string, unknown>): number {
     : DEFAULT_LIMIT
 }
 
-export function SettingsMenu(): JSX.Element {
+export function SettingsMenu({ sheet = false }: { sheet?: boolean }): JSX.Element {
   const { state, updateSettings, exportStore, importStore } = useStore()
   const dialog = useDialog()
 
@@ -150,7 +150,11 @@ export function SettingsMenu(): JSX.Element {
       </button>
 
       {open && (
-        <div className="popover" role="dialog" aria-label="Settings">
+        <div
+          className={sheet ? 'popover popover--sheet' : 'popover'}
+          role="dialog"
+          aria-label="Settings"
+        >
           {/* Character limit */}
           <div className="label-mono">Character limit</div>
           <div className="popover-hint">

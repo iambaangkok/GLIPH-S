@@ -22,6 +22,7 @@
   --topbar-h:  40px;
   --nav-w:     200px;
   --panel-w:   220px;
+  --rail-w:    40px;             /* collapsed side-pane rail (#17 tablet band)   */
   --shell-max-w: 1080px;         /* cap the whole 3-pane shell on ultra-wide screens */
 
   /* Typography */
@@ -388,6 +389,199 @@ a.chip:hover {
 }
 
 /* ── Modal / dialog ─────────────────────────────────────────────────────── */
+/* ── Responsive: collapsible side panes (>=768, #17 tablet/landscape band) ───── */
+/* A slim header above each sidebar carries the collapse chevron; the whole pane
+   folds to a labelled rail the user taps to reopen. Both default open so wide
+   screens read as the original 3-pane layout. */
+.pane-hdr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 0 8px 0 10px;
+  height: 30px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.pane-hdr > span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pane-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding-top: 10px;
+  background: var(--surface);
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+}
+.pane-rail:hover {
+  background: var(--sel);
+}
+.pane-rail-label {
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Responsive: near-full-width settings sheet (<768) ───────────────────────── */
+.popover--sheet {
+  position: fixed;
+  top: calc(var(--topbar-h) + 8px);
+  left: 12px;
+  right: 12px;
+  width: auto;
+  max-width: none;
+}
+
+/* ── Mobile: bottom tab bar (<768) ───────────────────────────────────────────── */
+.tabbar {
+  display: flex;
+  flex: 0 0 auto;
+  height: 56px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.tabbar .tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  border-right: 1px solid var(--line);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.tabbar .tab:last-child {
+  border-right: 0;
+}
+.tabbar .tab .tab-ic {
+  font-size: 17px;
+  line-height: 1;
+}
+.tabbar .tab.on {
+  color: var(--warn);
+  background: var(--sel);
+}
+
+/* ── Mobile: in-editor glyph dock (<768, #17) ────────────────────────────────── */
+/* A bottom-of-editor tray whose height is drag-adjustable via the grip bar. */
+.dock {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+/* grip — the drag-to-resize bar (also the collapsed handle) */
+.dock-grip {
+  flex: 0 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 22px;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+}
+.dock-grip--collapsed {
+  height: 44px; /* comfortable tap target when acting as the handle */
+}
+.dock-grip:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -2px;
+}
+.dock-grip-bar {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.dock-grip:hover .dock-grip-bar {
+  background: var(--muted);
+}
+.dock-grip-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* toolbar — mode toggle + collapse */
+.dock-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 8px;
+}
+
+/* body — the resizable tray content (strip rows or the full browser) */
+.dock-body {
+  min-height: 0;
+  padding: 0 10px 10px;
+}
+
+.dock-glyph {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 17px;
+  color: var(--fg);
+}
+.dock-glyph:active {
+  background: var(--sel);
+}
+
+/* ── Mobile: >=44px touch targets, scoped to the body region so the compact
+   top bar keeps its size (#18) ───────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .touch-region .chip {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .touch-region .icon-btn {
+    min-width: 44px;
+    height: 44px;
+    font-size: 14px;
+  }
+  .touch-region .nav-row {
+    min-height: 44px;
+  }
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

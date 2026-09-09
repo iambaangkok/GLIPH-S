@@ -194,7 +194,12 @@ function HighlightOverlayPlugin({
         const kinds: CellKind[] = cps.map((_, i) =>
           i >= overFrom ? 'over' : 'plain',
         )
-        for (const e of twitterText.extractEntitiesWithIndices(text)) {
+        // extractEntitiesWithIndices returns UTF-16 code-unit offsets; convert
+        // them to code-point offsets so they line up with the `cps` array (they
+        // diverge across astral/SMP glyphs — e.g. the "fancy font" styles).
+        const entities = twitterText.extractEntitiesWithIndices(text)
+        twitterText.modifyIndicesFromUTF16ToUnicode(text, entities)
+        for (const e of entities) {
           const [start, end] = e.indices
           for (let i = start; i < end && i < kinds.length; i++) {
             if (kinds[i] === 'plain') kinds[i] = 'entity'

@@ -33,9 +33,11 @@ declare module 'twitter-text' {
   function parseTweet(text: string, options?: TweetParseConfig): ParseTweetResult
 
   /**
-   * A single extracted entity. `indices` are code-point offsets [start, end).
-   * Exactly one of the optional descriptor fields is present, identifying the
-   * entity kind: mention (`screenName`), `hashtag`, `cashtag`, or `url`.
+   * A single extracted entity. `indices` are **UTF-16 code-unit** offsets
+   * [start, end) as returned by `extractEntitiesWithIndices` — convert them with
+   * `modifyIndicesFromUTF16ToUnicode` before indexing a code-point array (they
+   * diverge across astral / SMP glyphs). Exactly one of the optional descriptor
+   * fields is present: mention (`screenName`), `hashtag`, `cashtag`, or `url`.
    */
   export interface EntityWithIndices {
     indices: [number, number]
@@ -48,10 +50,20 @@ declare module 'twitter-text' {
 
   function extractEntitiesWithIndices(text: string): EntityWithIndices[]
 
+  /**
+   * Rewrites each entity's `indices` in place from UTF-16 code-unit offsets to
+   * Unicode code-point offsets, so they line up with `Array.from(text)`.
+   */
+  function modifyIndicesFromUTF16ToUnicode(
+    text: string,
+    entities: EntityWithIndices[],
+  ): void
+
   const _default: {
     configs: Configs
     parseTweet: typeof parseTweet
     extractEntitiesWithIndices: typeof extractEntitiesWithIndices
+    modifyIndicesFromUTF16ToUnicode: typeof modifyIndicesFromUTF16ToUnicode
   }
 
   export default _default
