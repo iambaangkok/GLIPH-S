@@ -1,2 +1,17 @@
+# Single-app repo (not a monorepo). This file exists only to (a) satisfy pnpm 10's
+# requirement for a `packages:` field once a pnpm-workspace.yaml is present — omitting it
+# makes pnpm 10 (Cloudflare Pages) fail install with "packages field missing or empty" —
+# and (b) permit the one transitive dependency with a postinstall script.
+packages:
+  - .
+
+# core-js@2 (transitive polyfill from twitter-text) has a postinstall script. It's bundled
+# from source into the web build, so running its script is harmless/optional, but pnpm now
+# blocks unlisted build scripts by default and errors (ERR_PNPM_IGNORED_BUILDS) unless the
+# dep is listed. The key changed across pnpm majors, so both are carried:
+#   - pnpm 11+ (local, v12): `allowBuilds` (old keys are silently ignored)
+#   - pnpm 10  (Cloudflare, v10.11.1): `onlyBuiltDependencies`
 allowBuilds:
   core-js: true
+onlyBuiltDependencies:
+  - core-js
