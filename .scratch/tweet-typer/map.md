@@ -243,15 +243,22 @@ Hierarchy: **Project › Thread › Post.**
   **63/63**, `oxlint src/` exit 0; not committed. Deferred as cosmetic: the prototype's internal
   Threads|Templates segment (full Navigator already satisfies the settled "single navigator" decision).
 
+- [Deploy GLIPH-S as a static site on Cloudflare Pages (custom domain)](../issues/19-deploy-cloudflare-pages.md) —
+  **GLIPH-S is live at https://gliph-s.iambaangkok.dev/.** Bought `iambaangkok.dev` as a personal-home
+  root; GLIPH-S served at the **`gliph-s` subdomain** (Vite `base` stays `'/'`, no code change).
+  Deployed as a Cloudflare **Worker with Static Assets** (not classic Pages) via Git integration
+  (auto-build on push to `master`, `pnpm build` → `dist`) + a new `wrangler.jsonc` (assets-only,
+  `assets.directory: ./dist`, name `gliph-s`). Free auto-TLS. Two deploy blockers fixed en route:
+  `pnpm-workspace.yaml` missing `packages:` (commit `0e0cbc7`) and missing wrangler assets config
+  (commit `8a2489d`). "BK SYSTEMS" kept as UI wordmark, not the address.
+
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
-- **Shipping / deployment** — the effort now extends past the original "locked MVP spec"
-  destination into getting GLIPH-S live. First live ticket:
-  [Deploy GLIPH-S as a static site on Cloudflare Pages (custom domain)](../issues/19-deploy-cloudflare-pages.md)
-  — decide domain + **subdomain vs subpath** (drives the Vite `base`) + deploy trigger, then buy the
-  domain and provision the Pages project. Currently the sole open frontier ticket.
+- **Shipping / deployment — DONE.** GLIPH-S is live on Cloudflare at
+  https://gliph-s.iambaangkok.dev/ (see the deploy decision above). `iambaangkok.dev` is on
+  Cloudflare and can host future project subdomains. No open shipping tickets remain.
 
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14, and
   every one of 07–14 is now resolved** (07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter,

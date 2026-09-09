@@ -1,7 +1,7 @@
 # Deploy GLIPH-S as a static site on Cloudflare Pages (custom domain)
 
 Type: grilling
-Status: claimed
+Status: resolved
 Blocked by:
 
 ## Question
@@ -135,6 +135,37 @@ the Answer when this ticket resolves.
   ./dist`, `compatibility_date`, `name: gliph-s`. ⚠️ **`name` must match the Worker's name in the CF
   dashboard** or it deploys to a different Worker — confirm/adjust. Validated locally with
   `wrangler deploy --dry-run` (read 6 files from dist, exit 0).
+
+## Answer
+
+**GLIPH-S is live at https://gliph-s.iambaangkok.dev/** (verified HTTP 200 over HTTPS, serving the
+app). All four decisions settled and the provisioning done:
+
+1. **Domain** — bought **`iambaangkok.dev`** as a durable *personal-home* root (exact match to the
+   user's github/email; a person-named root never goes out of scope the way a themed name would).
+   "BK SYSTEMS" stays a wordmark on the product UI, not the address. `bk.systems` was declined as
+   too narrow for a future project umbrella.
+2. **Subdomain vs subpath** — **subdomain** (`gliph-s.iambaangkok.dev`). Vite `base` stayed `'/'`,
+   **no code change**. Subpath rejected (would have needed `base: '/gliph-s/'` + routing under an
+   existing site).
+3. **Deploy trigger** — **Cloudflare Git integration**: auto-build on push to `master`, build
+   `pnpm build`, output `dist`. The project is a **Worker with Static Assets** (CF's current
+   default), deployed via `wrangler deploy` reading [wrangler.jsonc](../../../wrangler.jsonc)
+   (assets-only, no Worker script, `assets.directory: ./dist`, `name: gliph-s`).
+4. **SPA fallback** — not needed; single page, no client router.
+
+**TLS** — free auto-cert from Cloudflare, HTTPS confirmed (required anyway since `.dev` is
+HSTS-preloaded). **Hosting** — CF free tier, $0. **Recurring cost** — just the `.dev` registration.
+
+**Two build/deploy blockers were fixed along the way** (see Deploy log): the missing `packages:`
+field in `pnpm-workspace.yaml` (pnpm 10 install failure) → commit `0e0cbc7`; and the missing
+wrangler assets config → commit `8a2489d`.
+
+**Facts for later tickets:**
+- Live URL: **https://gliph-s.iambaangkok.dev/**
+- CF project type: Worker with Static Assets, name **`gliph-s`**, config `wrangler.jsonc`.
+- Deploy = push to `master` (auto-build). Root domain `iambaangkok.dev` is on Cloudflare and free
+  to host future project subdomains.
 
 ### Notes / open fog
 
