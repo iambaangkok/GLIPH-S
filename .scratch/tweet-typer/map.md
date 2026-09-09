@@ -215,6 +215,19 @@ Hierarchy: **Project › Thread › Post.**
   Templates-as-4th-segment?, the strip ↔ full-browser relationship, and tablet/~768–1080 middle-band
   (collapsible right panel?).
 
+- [Prototype: mobile / tablet responsive layout](../issues/17-mobile-responsive-prototype.md) —
+  settled #16's fuzzy interaction details via an iterated V7.4-language mock (HITL, 4 revs;
+  asset [prototypes/17-mobile-responsive.html](../prototypes/17-mobile-responsive.html), rebranded
+  GLIPH-S). **Templates → nested** under a Threads|Templates segment; mobile bottom bar is **2 tabs
+  (Threads · Editor)**. **No standalone Symbols tab** — the symbol UI moves onto the writing surface
+  as an in-editor **glyph dock** with three heights: (1) default **slim `Glyphs ▲` handle**, (2)
+  raised **Fav + Recent** strip (enlarged, each independently collapsible; inserts via `insertAtCursor()`),
+  (3) **⤢ full browser** (search · categories · **Styles** · favorites mgmt) that **hides the keyboard**
+  and grows to **~70%**, still in the post/template — same dock serves the Template editor. **Tablet
+  (~768–1080): both** the left Navigator and right Symbols panel are **user-collapsible to a rail**,
+  **none auto-collapse** (both open by default); keyboard-open compresses the panes with the right
+  panel still serving glyphs. Unblocks build **#18**.
+
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
@@ -223,8 +236,8 @@ Fog — graduates into sharp tickets as the decisions above resolve:
   every one of 07–14 is now resolved** (07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter,
   11 symbol browser+Styles, 12 templates, 13 settings/import-export, 14 copy+Open-in-X). The original
   MVP execution set is complete; later polish/UX lives in tickets 15–16 — **both now resolved**.
-  Responsive work continues via **16's graduated children: prototype #17 (frontier) → build #18
-  (blocked by #17)** — the only open children. Seams live: `useSelection()`
+  Responsive work continues via **16's graduated children: prototype #17 — now resolved — → build
+  #18, now the sole open child and the frontier** (unblocked; interaction spec captured in #17). Seams live: `useSelection()`
   (`src/lib/SelectionContext.tsx`, active thread — **now persisted to the `tt:ui` store** added by 15)
   and the **cursor-aware insertion seam** `useInsertion()` in
   `src/lib/InsertionContext.tsx` — `insertAtCursor()` (established by 10) **plus `transformSelection()`
