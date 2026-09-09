@@ -1,0 +1,15 @@
+{
+  // GLIPH-S is a purely static SPA (Vite build → dist/). This deploys it as a
+  // Cloudflare "Worker with Static Assets" with NO Worker script — assets only.
+  // `wrangler deploy` (the deploy command in the Cloudflare build) reads this.
+  //
+  // IMPORTANT: `name` must match the Worker/project name in your Cloudflare
+  // dashboard, or wrangler will deploy to a differently-named Worker. Change it
+  // if your project is named something other than "gliph-s".
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gliph-s",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}

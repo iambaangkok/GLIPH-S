@@ -124,7 +124,17 @@ the Answer when this ticket resolves.
   each version silently ignores the other's; this clears the follow-on `ERR_PNPM_IGNORED_BUILDS`
   for `core-js@2` (a harmless transitive twitter-text polyfill, bundled from source). Verified
   clean-clone `pnpm install --frozen-lockfile` exit 0, `pnpm build` exit 0, `pnpm test` 63/63.
-  **Not yet committed — commit + push both files to trigger a fresh Pages build.**
+  Committed `0e0cbc7` + pushed to `master`.
+
+- **Build then succeeded; deploy failed** at `npx wrangler deploy` with
+  `The 'assets' property in your configuration is missing the required 'directory' property`.
+  Root cause: the Cloudflare project is a **Worker with Static Assets** (current CF default), not a
+  classic Pages project, and its deploy command is `wrangler deploy` — but the repo had no wrangler
+  config, so wrangler didn't know where the static files were. **Fix:** added
+  [wrangler.jsonc](../../../wrangler.jsonc) — assets-only Worker (no script), `assets.directory:
+  ./dist`, `compatibility_date`, `name: gliph-s`. ⚠️ **`name` must match the Worker's name in the CF
+  dashboard** or it deploys to a different Worker — confirm/adjust. Validated locally with
+  `wrangler deploy --dry-run` (read 6 files from dist, exit 0).
 
 ### Notes / open fog
 
