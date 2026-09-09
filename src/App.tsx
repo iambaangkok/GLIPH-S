@@ -21,7 +21,7 @@
  *   │  (left)      │  (center)                 │  (right)      │
  *   └──────────────┴───────────────────────────┴───────────────┘
  */
-import { useState, type JSX, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react'
 
 import { StoreProvider } from './lib/StoreContext.tsx'
 import { SelectionProvider } from './lib/SelectionContext.tsx'
@@ -69,10 +69,13 @@ function TopBar({ mobile }: { mobile?: boolean }): JSX.Element {
 // ── Center (shared) ──────────────────────────────────────────────────────────────
 
 /** The Post-stack editor with the cross-pane post-drag cursor fix (#10). */
-function CenterEditor({ flush }: { flush?: boolean }): JSX.Element {
+function CenterEditor({ flush, shiftX = 0 }: { flush?: boolean; shiftX?: number }): JSX.Element {
   return (
     <main
-      className="editor-halftone center-scroll"
+      // On desktop the halftone lives on the shell (stable on collapse); the pane
+      // is transparent so it shows through — anchoring the dot field so it doesn't
+      // shift when a column resizes. On mobile (flush) the pane carries its own.
+      className={flush ? 'editor-halftone center-scroll' : 'center-scroll'}
       onDragOver={(e) => {
         if (!e.dataTransfer.types.includes(POST_MIME)) return
         e.preventDefault()
@@ -83,7 +86,7 @@ function CenterEditor({ flush }: { flush?: boolean }): JSX.Element {
         gridColumn: flush ? undefined : 2,
         flex: flush ? 1 : undefined,
         minHeight: flush ? 0 : undefined,
-        backgroundColor: 'var(--bg)',
+        backgroundColor: flush ? 'var(--bg)' : 'transparent',
         padding: 14,
         overflowY: 'auto',
         display: 'flex',
@@ -91,7 +94,24 @@ function CenterEditor({ flush }: { flush?: boolean }): JSX.Element {
         gap: 0,
       }}
     >
-      <ThreadEditor />
+      {/* Centered, width-capped content column: collapsing the sidebars widens the
+          center background but the card stays ~--card-max-w. `shiftX` re-centers
+          the card on the whole shell (not just this column) when the sidebars are
+          asymmetric. Uncapped on mobile (flush) so the card fills the screen. */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: flush ? undefined : 'var(--card-max-w)',
+          alignSelf: 'center',
+          transform: shiftX ? `translateX(${shiftX}px)` : undefined,
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <ThreadEditor />
+      </div>
     </main>
   )
 }
@@ -173,6 +193,14 @@ function CollapsiblePane({
   )
 }
 
+// Layout constants — mirror the CSS tokens (--nav-w / --panel-w / --rail-w /
+// --card-max-w). Kept in sync by hand; used to re-center the card on the shell.
+const NAV_W = 200
+const PANEL_W = 220
+const RAIL_W = 40
+const CARD_MAX_W = 628
+const CENTER_PAD = 14 // --main padding, both sides
+
 function DesktopShell(): JSX.Element {
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [panelCollapsed, setPanelCollapsed] = useState(false)
@@ -180,8 +208,42 @@ function DesktopShell(): JSX.Element {
   const leftCol = navCollapsed ? 'var(--rail-w)' : 'var(--nav-w)'
   const rightCol = panelCollapsed ? 'var(--rail-w)' : 'var(--panel-w)'
 
+  // Keep the card visually pinned to the spot it occupies when *both* panels are
+  // open, so collapsing either sidebar doesn't move it — only the background
+  // grows. Collapsing a side shrinks its column and slides the center column's
+  // midpoint by half that shrink; translate the card by the opposite to cancel
+  // it. (Targeting true shell-center instead makes the card jump when the tight
+  // both-open slack can't reach center.) Clamped so it never overflows the
+  // column when space is tight.
+  const shellRef = useRef<HTMLDivElement>(null)
+  const [shellWidth, setShellWidth] = useState(0)
+  useEffect(() => {
+    const el = shellRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => {
+      setShellWidth(entry.contentRect.width)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const leftPx = navCollapsed ? RAIL_W : NAV_W
+  const rightPx = panelCollapsed ? RAIL_W : PANEL_W
+  const leftShrink = NAV_W - leftPx // 0, or NAV_W − RAIL_W when collapsed
+  const rightShrink = PANEL_W - rightPx
+  const desiredShift = (leftShrink - rightShrink) / 2
+  const contentW = shellWidth - leftPx - rightPx - CENTER_PAD * 2
+  const slack = Math.max(0, (contentW - CARD_MAX_W) / 2)
+  const cardShift = Math.max(-slack, Math.min(desiredShift, slack))
+
   return (
     <div
+      ref={shellRef}
+      // Halftone dot field lives here (not the center pane) so it stays anchored
+      // to the shell and doesn't shift when a column collapses; only the
+      // transparent center pane reveals it. backgroundColor (not the `background`
+      // shorthand) so it doesn't reset the class's background-image.
+      className="editor-halftone"
       style={{
         display: 'grid',
         gridTemplateRows: 'var(--topbar-h) 1fr',
@@ -190,7 +252,7 @@ function DesktopShell(): JSX.Element {
         width: '100%',
         maxWidth: 'var(--shell-max-w)',
         borderInline: '1px solid var(--line)',
-        background: 'var(--bg)',
+        backgroundColor: 'var(--bg)',
         color: 'var(--fg)',
         fontFamily: 'var(--font-body)',
       }}
@@ -207,7 +269,7 @@ function DesktopShell(): JSX.Element {
         <Navigator />
       </CollapsiblePane>
 
-      <CenterEditor />
+      <CenterEditor shiftX={cardShift} />
 
       <CollapsiblePane
         side="right"

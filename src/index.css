@@ -23,6 +23,7 @@
   --nav-w:     200px;
   --panel-w:   220px;
   --rail-w:    40px;             /* collapsed side-pane rail (#17 tablet band)   */
+  --card-max-w: 628px;           /* cap the center post/template card (600 + 12 + 8 + 8); bg fills the rest */
   --shell-max-w: 1080px;         /* cap the whole 3-pane shell on ultra-wide screens */
 
   /* Typography */

@@ -126,6 +126,19 @@ Two touch gaps surfaced when exercising the build on a phone:
 Re-verified: `pnpm build` clean, `pnpm test` **63/63**, `oxlint src/` exit 0. New dep:
 `drag-drop-touch@1.3.1`.
 
+4. **Center card width + centering polish** (desktop). Capped the center post/template card at
+   **`--card-max-w: 628px`** (600 + 12 + 8 + 8) via a centered, width-capped wrapper in
+   `src/App.tsx` `CenterEditor` — collapsing the sidebars now widens the center background but the
+   card holds its width (uncapped on mobile/`flush`). The card is **pinned to its both-panels-open
+   position** so toggling either sidebar doesn't move it: `DesktopShell` measures shell width
+   (`ResizeObserver`) and translates the card by `(leftShrink − rightShrink)/2`, clamped to the
+   column slack so it never overflows. No transition on that transform (it desynced from the
+   instant grid-column snap → jiggle). Finally, moved the **halftone dot field onto the shell grid**
+   (stable on collapse) with the center pane transparent to reveal it, so the dot pattern no longer
+   shifts ~6px when a column resizes.
+
+Re-verified after polish: `pnpm build` clean, `oxlint src/` exit 0.
+
 ## Status: COMPLETED
 
-Responsive build + all three follow-up fixes shipped and verified. Ticket closed.
+Responsive build + all four follow-up fixes shipped and verified. Ticket closed.
