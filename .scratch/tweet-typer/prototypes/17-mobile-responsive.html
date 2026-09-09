@@ -1,359 +1,471 @@
 <!doctype html>
 <!--
   PROTOTYPE — throwaway. Ticket #17 (mobile/tablet responsive layout).
-  Three structurally-different takes on the <768 mobile layout + the ~768-1080
-  tablet band, so the fuzzy interaction decisions can be reacted to before build #18.
+  REV 4 — locked the glyph-dock behaviour. Rechecked against the V7.4 "Kinetic Mono /
+  Instrument" language in prototypes/06-visual-theme.html (topbar chips, mono .grp marks,
+  ruler-gauge counter, amber over-limit shading, halftone dot fields, dingbat marks).
 
-  Open in a browser. Switch variants with the floating bottom bar or ← / → keys.
-  Each variant renders three framed mocks:
-    1. Mobile portrait — default view + bottom nav
-    2. Mobile portrait — Editor with the 2-row above-keyboard symbol strip + keyboard
-    3. Tablet / phone-landscape ~820px — the awkward middle band
+  Open in a browser — stacked framed mocks (same convention as the 06 prototype).
+  The tablet mock is interactive: click a pane's ⟨ / ⟩ chevron to collapse/expand it.
 
-  The three questions each variant answers differently:
-    Q1 Templates — 4th bottom-tab, or nested inside Threads?
-    Q2 Full Symbol/Styles browser — its own tab, or expand-to-sheet from the strip?
-    Q3 Tablet ~768-1080 — collapsible right panel, or accept the cramped 3-pane?
+  Decisions this rev bakes in (HITL — final react before build #18):
+    PHONE  = 2-tab bottom bar: Threads · Editor (default Editor). No Symbols tab.
+             Templates nested under Threads (Threads|Templates segment).
+             Glyph dock at the bottom of the Editor, three heights:
+               1. DEFAULT = slim handle — a dimmed "Glyphs ▲" pill you tap to raise.
+               2. Raised  = Favorites + Recent strip, each independently collapsible.
+               3. Browse  = ⤢ grows to the FULL browser (search · categories · Styles),
+                  keyboard hides, up to ~70% of the screen; insert new/non-fav glyphs
+                  without leaving the post/template, then collapse back.
+    TABLET = 3-pane; BOTH the left nav and the right symbol panel collapse to a rail.
+             None auto-collapse — both open by default. Keyboard-open view compresses
+             the panes above the keyboard; the right panel keeps serving glyphs (no dock).
 
-  NOT the real app — static grey-box mock in the V7.4 "Kinetic Mono / Instrument" theme.
+  NOT the real app — static grey-box mock in the real tokens.
 -->
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>#17 — mobile responsive mock</title>
+<title>#17 — mobile/tablet responsive · V7.4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+JP&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db;
-    --muted:#8b8577; --line:#2d2a23; --warn:#e8a13c; --sel:rgba(239,233,219,.10);
-    --over:rgba(232,161,60,.20); --radius:6px;
-    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    color-scheme: dark;
+    --bg:#141310; --surface:#1b1914; --surface-2:#100f0c; --fg:#efe9db; --muted:#8b8577;
+    --line:#2d2a23; --warn:#e8a13c; --accent:#efe9db; --over:rgba(232,161,60,.20);
+    --sel:rgba(239,233,219,.10); --radius:6px;
     --body:'Space Grotesk','Inter',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
   }
-  * { box-sizing:border-box; }
-  body {
-    margin:0; background:#0b0a08; color:var(--fg); font-family:var(--body);
-    padding:28px 20px 100px;
-  }
-  h1 { font-size:15px; letter-spacing:.06em; margin:0 0 4px; }
-  .sub { color:var(--muted); font-size:12px; margin:0 0 6px; font-family:var(--mono); }
-  .qline { color:var(--muted); font-size:12px; margin:2px 0 22px; max-width:900px; line-height:1.5; }
-  .qline b { color:var(--warn); font-weight:600; }
-  .stage { display:flex; flex-wrap:wrap; gap:34px; align-items:flex-start; }
-  .cap { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
-         color:var(--muted); margin:0 0 8px; }
-  .note { font-family:var(--mono); font-size:10.5px; color:var(--warn); max-width:230px;
-          line-height:1.5; margin-top:10px; }
+  * { box-sizing:border-box; border-color:var(--line); }
+  body { margin:0; background:#0b0a08; color:var(--fg); font-family:var(--body); line-height:1.45; }
+  .page { max-width:1180px; margin:0 auto; padding:30px 24px 90px; }
+  .page > header h1 { font-size:19px; letter-spacing:.04em; margin:0 0 6px; }
+  .page > header p { margin:0; color:var(--muted); font-size:13px; max-width:74ch; }
+  .page > header p b { color:var(--fg); }
 
-  /* device frames */
-  .phone { width:300px; height:600px; border:1px solid var(--line); border-radius:22px;
-           background:var(--surface-2); overflow:hidden; position:relative; display:flex;
-           flex-direction:column; box-shadow:0 0 0 6px #000, 0 14px 40px rgba(0,0,0,.6); }
-  .tablet { width:560px; height:440px; border:1px solid var(--line); border-radius:12px;
-            background:var(--surface-2); overflow:hidden; display:flex; flex-direction:column;
-            box-shadow:0 0 0 6px #000, 0 14px 40px rgba(0,0,0,.6); }
+  .section { margin:38px 0; border-top:1px solid var(--line); padding-top:22px; }
+  .section > h2 { font-size:15px; letter-spacing:.03em; margin:0 0 4px; }
+  .section > .lede { color:var(--muted); font-size:12.5px; margin:0 0 18px; max-width:80ch; }
+  .section > .lede b { color:var(--warn); font-weight:600; }
+  .stage { display:flex; flex-wrap:wrap; gap:30px; align-items:flex-start; }
+  .cap { font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:0 0 8px; }
+  .note { font-family:var(--mono); font-size:10px; color:var(--muted); max-width:250px; line-height:1.55; margin-top:9px; }
+  .note b { color:var(--warn); }
 
-  /* shared chrome */
-  .top { height:34px; flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:0 12px;
-         background:var(--surface-2); border-bottom:1px solid var(--line);
-         font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase;
-         color:var(--muted); }
-  .brand { color:var(--warn); font-weight:700; letter-spacing:.16em; }
-  .spacer { flex:1; }
-  .limit { color:var(--fg); }
-  .cog { color:var(--muted); }
+  /* ── device frames ── */
+  .phone { width:300px; height:604px; border:1px solid var(--line); border-radius:22px; background:var(--surface-2);
+           overflow:hidden; display:flex; flex-direction:column; box-shadow:0 0 0 6px #000, 0 14px 40px rgba(0,0,0,.55); }
+  .tablet { width:720px; height:470px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2);
+            overflow:hidden; display:flex; flex-direction:column; box-shadow:0 0 0 6px #000, 0 14px 40px rgba(0,0,0,.55); }
 
-  .body { flex:1; overflow:hidden; position:relative; display:flex; flex-direction:column;
-          background:var(--bg); }
+  /* ── V7.4 chrome (ported from 06-visual-theme.html) ── */
+  .topbar { flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:0 12px; height:38px;
+            background:var(--surface-2); border-bottom:1px solid var(--line); font-family:var(--mono);
+            font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+  .topbar .brand { color:var(--accent); font-weight:700; letter-spacing:.16em; }
+  .topbar .spacer { flex:1; }
+  .chip { border:1px solid var(--line); padding:3px 8px; border-radius:var(--radius); white-space:nowrap; font-family:var(--mono);
+          font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
 
-  /* bottom tab bar */
-  .tabbar { flex:0 0 auto; height:52px; display:flex; border-top:1px solid var(--line);
-            background:var(--surface); }
-  .tab { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-         gap:3px; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase;
-         color:var(--muted); border-right:1px solid var(--line); }
-  .tab:last-child { border-right:0; }
-  .tab .ic { font-size:15px; line-height:1; }
-  .tab.on { color:var(--warn); background:var(--sel); }
+  .col { display:flex; flex-direction:column; min-height:0; }
+  .body { flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; background:var(--bg); }
 
-  /* generic pane content */
-  .pane { flex:1; overflow:auto; padding:12px; }
-  .plabel { font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase;
-            color:var(--muted); margin:0 0 8px; display:flex; align-items:center; gap:6px; }
-  .row { padding:9px 10px; border:1px solid var(--line); border-radius:var(--radius);
-         margin-bottom:7px; font-size:12px; background:var(--surface); display:flex; align-items:center; gap:8px; }
-  .row.sel { border-color:var(--warn); background:var(--sel); }
-  .row .mut { color:var(--muted); font-size:10px; margin-left:auto; font-family:var(--mono); }
+  .nav { background:var(--surface); padding:10px; overflow:auto; }
+  .nav .grp { font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:10px 4px 6px; }
+  .nav .grp:first-child { margin-top:0; }
+  .nav .item { padding:8px 8px; border-radius:var(--radius); font-size:12.5px; color:var(--fg); min-height:36px; display:flex; align-items:center; gap:6px; }
+  .nav .item.sel { background:var(--sel); color:var(--accent); font-weight:600; }
+  .nav .item.sub { padding-left:16px; color:var(--muted); font-size:12px; min-height:30px; }
+  .nav .item .mut { margin-left:auto; font-family:var(--mono); font-size:9px; color:var(--muted); }
   .seg { display:flex; margin-bottom:12px; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
-  .seg span { flex:1; text-align:center; padding:6px; font-family:var(--mono); font-size:9px;
-              letter-spacing:.1em; text-transform:uppercase; color:var(--muted); border-right:1px solid var(--line); }
+  .seg span { flex:1; text-align:center; padding:8px; font-family:var(--mono); font-size:9px; letter-spacing:.1em;
+              text-transform:uppercase; color:var(--muted); border-right:1px solid var(--line); }
   .seg span:last-child { border-right:0; }
-  .seg span.on { background:var(--sel); color:var(--warn); }
+  .seg span.on { background:var(--sel); color:var(--accent); }
 
-  /* editor */
-  .post { border:1px solid var(--line); border-radius:var(--radius); background:var(--surface);
-          padding:10px; margin-bottom:10px; }
-  .post .txt { font-size:12.5px; line-height:1.55; min-height:60px; }
-  .post .txt .over { background:var(--over); }
-  .gauge { height:4px; background:var(--line); border-radius:2px; margin-top:9px; position:relative; }
-  .gauge::after { content:''; position:absolute; left:0; top:0; bottom:0; width:62%;
-                  background:var(--warn); border-radius:2px; }
-  .pfoot { display:flex; gap:6px; margin-top:9px; }
-  .chip { min-height:30px; display:inline-flex; align-items:center; padding:0 11px; border-radius:20px;
-          border:1px solid var(--line); font-family:var(--mono); font-size:9px; color:var(--muted);
-          letter-spacing:.08em; }
+  /* editor + halftone dot field (v74) */
+  .editor { flex:1; min-height:0; background:var(--bg); padding:12px; overflow:auto;
+            background-image:radial-gradient(rgba(239,233,219,.07) 22%, transparent 24%); background-size:7px 7px; }
+  .post { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:11px; margin-bottom:11px; }
+  .post .txt { font-size:12.5px; line-height:1.55; color:var(--fg); }
+  .post .txt .sym { color:var(--accent); }
+  .post .txt .over { background:var(--over); border-radius:2px; }
+  .post footer { display:flex; align-items:center; gap:9px; margin-top:11px; }
+  .post footer .spacer { flex:1; }
+  /* per ticket 14: symbol-only, dimmed chips (no amber primary) */
+  .fchip { min-height:30px; display:inline-flex; align-items:center; padding:0 10px; border-radius:20px; border:1px solid var(--line);
+           font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; color:var(--muted); }
+  /* ruler-gauge counter (v74) */
+  .counter { font-family:var(--mono); font-size:11px; color:var(--muted); display:flex; align-items:center; gap:7px; }
+  .counter::before { content:""; width:58px; height:9px; align-self:center;
+    background:
+      linear-gradient(var(--warn),var(--warn)) left center / 82% 3px no-repeat,
+      linear-gradient(var(--line),var(--line)) left center / 100% 1px no-repeat,
+      repeating-linear-gradient(90deg, var(--muted) 0 1px, transparent 1px 8px) center / 100% 9px no-repeat; }
+  .counter .num.warn { color:var(--warn); font-weight:700; }
 
-  /* above-keyboard strip */
-  .strip { flex:0 0 auto; background:var(--surface); border-top:1px solid var(--line);
-           padding:6px 8px; }
-  .strip .srow { display:flex; gap:6px; margin-bottom:5px; }
-  .strip .srow:last-child { margin-bottom:0; }
-  .glyph { width:30px; height:30px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
-           border:1px solid var(--line); border-radius:5px; font-family:var(--mono); font-size:13px;
-           background:var(--surface-2); }
-  .glyph.lbl { color:var(--muted); font-size:8px; letter-spacing:.08em; width:auto; padding:0 7px; }
-  .glyph.exp { color:var(--warn); border-color:var(--warn); margin-left:auto; }
-  .kbd { flex:0 0 auto; height:150px; background:var(--surface-2); border-top:1px solid var(--line);
-         display:flex; flex-direction:column; gap:5px; padding:8px 5px; }
-  .krow { display:flex; gap:4px; justify-content:center; flex:1; }
-  .key { flex:1; background:var(--surface); border:1px solid var(--line); border-radius:4px;
-         display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); }
+  /* symbol panel */
+  .panel { background:var(--surface); padding:10px; overflow:auto; }
+  .panel .tabs { display:flex; gap:6px; margin-bottom:10px; font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
+  .panel .tabs span { padding:5px 9px; border-radius:var(--radius); color:var(--muted); border:1px solid transparent; }
+  .panel .tabs span.on { color:var(--accent); border-color:var(--accent); }
+  .panel .search { font-family:var(--mono); font-size:10.5px; padding:8px 9px; border:1px solid var(--line); border-radius:var(--radius); color:var(--muted); margin-bottom:10px; }
+  .panel .colhdr { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin:2px 2px 7px; }
+  .panel .colhdr .chev { margin-left:auto; }
+  .panel .ruler { height:22px; background:radial-gradient(var(--muted) 26%, transparent 28%) 0 0 / 6px 6px; opacity:.5; margin-bottom:10px; }
+  .panel .grid { display:grid; grid-template-columns:repeat(6,1fr); gap:4px; }
+  .panel .grid b { display:grid; place-items:center; aspect-ratio:1; font-weight:400; font-size:14px; border:1px solid var(--line); border-radius:var(--radius); color:var(--fg); font-family:var(--mono); }
+  .panel .marks { display:flex; align-items:center; gap:9px; margin-top:12px; color:var(--fg); font-size:12px; justify-content:space-between; }
+  .panel .marks .circ { width:17px; height:17px; border:1px solid var(--line); border-radius:50%; display:inline-grid; place-items:center; font:7px/1 var(--mono); color:var(--fg); }
+  .panel .marks .code { font-family:var(--mono); font-size:9px; letter-spacing:.14em; color:var(--muted); }
 
-  /* symbol full browser */
-  .searchbox { border:1px solid var(--line); border-radius:var(--radius); padding:7px 9px; font-size:11px;
-               color:var(--muted); font-family:var(--mono); margin-bottom:10px; }
-  .chips-cat { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
-  .catchip { padding:4px 9px; border:1px solid var(--line); border-radius:20px; font-family:var(--mono);
-             font-size:8.5px; color:var(--muted); letter-spacing:.06em; }
-  .catchip.on { color:var(--warn); border-color:var(--warn); }
-  .ggrid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; }
-  .ggrid .glyph { width:auto; }
+  /* ── mobile bottom tab bar ── */
+  .tabbar { flex:0 0 auto; height:54px; display:flex; border-top:1px solid var(--line); background:var(--surface); }
+  .tabbar .tab { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+                 font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+                 border-right:1px solid var(--line); }
+  .tabbar .tab:last-child { border-right:0; }
+  .tabbar .tab .ic { font-size:16px; line-height:1; }
+  .tabbar .tab.on { color:var(--warn); background:var(--sel); }
 
-  /* bottom sheet overlay */
-  .sheet { position:absolute; left:0; right:0; bottom:0; background:var(--surface);
-           border-top:1px solid var(--warn); border-radius:12px 12px 0 0; padding:10px 12px 14px;
-           box-shadow:0 -12px 30px rgba(0,0,0,.5); max-height:78%; overflow:auto; }
-  .sheet .grab { width:34px; height:3px; background:var(--line); border-radius:2px; margin:0 auto 10px; }
-  .sheettabs { display:flex; gap:6px; margin-bottom:10px; }
-  .sheettab { flex:1; text-align:center; padding:6px; border:1px solid var(--line); border-radius:var(--radius);
-              font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
-  .sheettab.on { color:var(--warn); border-color:var(--warn); background:var(--sel); }
+  /* slim collapsed handle — the DEFAULT dock state */
+  .dockhandle { flex:0 0 auto; background:var(--surface); border-top:1px solid var(--line); height:38px; display:flex; align-items:center; justify-content:center; }
+  .dockhandle .hpill { border:1px solid var(--line); border-radius:20px; padding:6px 16px; min-height:28px; display:inline-flex; align-items:center; gap:8px;
+                       font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+  .dockhandle .hpill .up { color:var(--muted); }
 
-  /* settings sheet */
-  .setsheet { position:absolute; left:0; right:0; top:34px; background:var(--surface);
-              border-bottom:1px solid var(--warn); padding:12px; box-shadow:0 12px 30px rgba(0,0,0,.5); }
-  .field { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:11px; color:var(--muted); font-family:var(--mono); }
-  .field .box { min-width:70px; padding:7px; border:1px solid var(--line); border-radius:var(--radius); color:var(--fg); }
+  /* ── editor glyph dock (above-keyboard) — enlarged, collapsible, expandable ── */
+  .dock { flex:0 0 auto; background:var(--surface); border-top:1px solid var(--line); padding:8px 9px; }
+  .dock .dhdr { display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .dock .dhdr .expand { margin-left:auto; color:var(--warn); border:1px solid var(--warn); border-radius:20px; padding:4px 10px; min-height:28px; display:inline-flex; align-items:center; gap:5px; }
+  .dock .sec { margin-bottom:8px; }
+  .dock .sec:last-child { margin-bottom:0; }
+  .dock .seclbl { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:8px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .dock .seclbl .chev { color:var(--muted); }
+  .dock .grow { display:flex; gap:7px; align-items:center; }
+  .dock .g { width:40px; height:40px; flex:0 0 auto; display:grid; place-items:center; border:1px solid var(--line); border-radius:6px; font-family:var(--mono); font-size:16px; background:var(--surface-2); }
+  .dock .g.grip { color:var(--muted); font-size:12px; }
 
-  /* tablet 3-pane */
-  .tp { flex:1; display:grid; overflow:hidden; }
-  .tp.cramped { grid-template-columns:180px 1fr 200px; }
-  .tp.collapsed { grid-template-columns:180px 1fr 40px; }
-  .tp > div { overflow:auto; border-right:1px solid var(--line); }
-  .tp > div:last-child { border-right:0; }
-  .railcol { display:flex; flex-direction:column; align-items:center; padding-top:10px; gap:12px;
-             background:var(--surface); }
-  .railcol .v { writing-mode:vertical-rl; font-family:var(--mono); font-size:9px; letter-spacing:.14em;
-                text-transform:uppercase; color:var(--warn); }
-  .railcol .ic { font-size:14px; color:var(--muted); }
+  /* full browser sheet expanded over the keyboard, in-editor */
+  .browsesheet { flex:0 0 auto; background:var(--surface); border-top:1px solid var(--warn); padding:9px 10px 12px; }
+  .browsesheet .grab { width:34px; height:3px; background:var(--line); border-radius:2px; margin:0 auto 9px; }
+  .browsesheet .catrow { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:9px; }
+  .browsesheet .cat { padding:5px 9px; border:1px solid var(--line); border-radius:20px; font-family:var(--mono); font-size:8.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .browsesheet .cat.on { color:var(--warn); border-color:var(--warn); }
+  .browsesheet .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .browsesheet .grid b { display:grid; place-items:center; aspect-ratio:1; font-weight:400; font-size:15px; border:1px solid var(--line); border-radius:6px; color:var(--fg); font-family:var(--mono); }
+  .kbd { flex:0 0 auto; height:148px; background:var(--surface-2); border-top:1px solid var(--line); display:flex; flex-direction:column; gap:5px; padding:8px 5px; }
+  .kbd .krow { display:flex; gap:4px; justify-content:center; flex:1; }
+  .kbd .key { flex:1; background:var(--surface); border:1px solid var(--line); border-radius:4px; display:grid; place-items:center; font-size:11px; color:var(--muted); }
 
-  /* switcher */
-  .switcher { position:fixed; left:50%; bottom:22px; transform:translateX(-50%); z-index:99;
-    display:flex; align-items:center; gap:14px; background:#000; border:1px solid var(--warn);
-    border-radius:30px; padding:9px 16px; box-shadow:0 8px 30px rgba(0,0,0,.7); font-family:var(--mono); }
-  .switcher button { background:none; border:0; color:var(--warn); font-size:18px; cursor:pointer; line-height:1; }
-  .switcher .vlabel { font-size:11px; letter-spacing:.06em; color:var(--fg); min-width:230px; text-align:center; }
-  .switcher .vlabel b { color:var(--warn); }
+  /* ── tablet 3-pane, collapsible ── */
+  .tp { flex:1; min-height:0; display:grid; grid-template-columns:190px 1fr 210px; overflow:hidden; transition:grid-template-columns .18s ease; }
+  .tp.lc { grid-template-columns:42px 1fr 210px; }
+  .tp.rc { grid-template-columns:190px 1fr 42px; }
+  .tp.lc.rc { grid-template-columns:42px 1fr 42px; }
+  .tp > .col { border-right:1px solid var(--line); overflow:hidden; }
+  .tp > .col:last-child { border-right:0; }
+  .navhdr { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--line); background:var(--surface); }
+  .navhdr .chev { margin-left:auto; cursor:pointer; color:var(--muted); }
+  .rail { display:flex; flex-direction:column; align-items:center; padding-top:10px; gap:14px; background:var(--surface); cursor:pointer; height:100%; }
+  .rail .chev { color:var(--warn); }
+  .rail .ic { color:var(--muted); font-size:14px; }
+  .rail .v { writing-mode:vertical-rl; font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+  .hide { display:none !important; }
+  .tabtoggle { font-family:var(--mono); font-size:10px; color:var(--muted); margin:8px 0 0; }
+  .tabtoggle b { color:var(--warn); }
 </style>
 </head>
 <body>
-  <div id="app"></div>
+<div class="page">
+  <header>
+    <h1>GLIPH-S — mobile / tablet responsive · ticket 17</h1>
+    <p>Converged direction, drawn in the locked <b>V7.4 Kinetic Mono / Instrument</b> language
+       (topbar chips, mono group marks, ruler-gauge counter, amber over-limit shading, halftone
+       dot fields, dingbat marks). <b>Phone = Variant A</b> (3-tab bar, Templates nested, full
+       browser = Symbols tab). <b>Tablet = collapsible sidebars</b> — the tablet mock below is
+       live: click a pane's chevron to collapse it to a rail.</p>
+  </header>
 
-  <div class="switcher">
-    <button id="prev" title="prev (←)">◄</button>
-    <div class="vlabel" id="vlabel"></div>
-    <button id="next" title="next (→)">►</button>
-  </div>
+  <!-- ============ PHONE ============ -->
+  <section class="section">
+    <h2>Phone · portrait (&lt;768px)</h2>
+    <p class="lede">Bottom bar: <b>Threads · Editor</b>, default <b>Editor</b> — the standalone Symbols tab is
+      gone; all glyph UI lives in the editor's <b>glyph dock</b>. Top bar retained. Touch targets ≥44px
+      on tabs, nav rows, dock cells, and Post footer chips.</p>
+    <div class="stage">
+
+      <!-- 1. Editor · DEFAULT — slim glyph handle -->
+      <div>
+        <p class="cap">Editor · default (slim handle)</p>
+        <div class="phone">
+          <div class="topbar"><span class="brand">GLIPH-S</span><span class="chip">Unfiled</span><span class="spacer"></span><span class="chip">280</span><span class="chip">⚙</span></div>
+          <div class="body">
+            <div class="editor">
+              <div class="post">
+                <div class="txt">Ghost protocol online <span class="sym">「◈」</span> shipping the browser today — <span class="sym">▓▒░</span> curated glyphs, weighted counts. <span class="over">this fragment pushes past the limit ▮▮▮</span></div>
+                <footer><span class="counter"><span class="num warn">−12</span></span><span class="spacer"></span><span class="fchip">⧉ copy</span><span class="fchip">↗ 𝕏</span></footer>
+              </div>
+              <div class="post"><div class="txt">Post 02 <span class="sym">⟟ ⌁ ⏿</span> thread continues…</div>
+                <footer><span class="counter"><span class="num">41</span></span><span class="spacer"></span><span class="fchip">⧉ copy</span><span class="fchip">↗ 𝕏</span></footer></div>
+            </div>
+          </div>
+          <div class="dockhandle"><span class="hpill">Glyphs <span class="up">▲</span></span></div>
+          <div class="tabbar">
+            <div class="tab"><span class="ic">❒</span>Threads</div>
+            <div class="tab on"><span class="ic">✎</span>Editor</div>
+          </div>
+        </div>
+        <div class="note"><b>Default state.</b> The dock rests as a slim dimmed <b>Glyphs ▲</b> handle so writing owns the screen — tap it to raise the Fav/Recent strip (next frame).</div>
+      </div>
+
+      <!-- 2. Editor · dock raised (Fav + Recent, enlarged, collapsible) -->
+      <div>
+        <p class="cap">Editor · dock raised (Fav + Recent)</p>
+        <div class="phone">
+          <div class="topbar"><span class="brand">GLIPH-S</span><span class="chip">Unfiled</span><span class="spacer"></span><span class="chip">280</span><span class="chip">⚙</span></div>
+          <div class="body">
+            <div class="editor">
+              <div class="post">
+                <div class="txt">Ghost protocol online <span class="sym">「◈」</span> shipping the browser today — <span class="sym">▓▒░</span> curated glyphs. <span class="over">this fragment pushes past the limit ▮▮▮</span></div>
+                <footer><span class="counter"><span class="num warn">−12</span></span><span class="spacer"></span><span class="fchip">⧉ copy</span><span class="fchip">↗ 𝕏</span></footer>
+              </div>
+              <div class="post"><div class="txt">Post 02 <span class="sym">⟟ ⌁ ⏿</span> …</div></div>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dhdr">Glyphs<span class="expand">⤢ browse all</span></div>
+            <div class="sec">
+              <div class="seclbl"><span class="chev">▾</span> Favorites</div>
+              <div class="grow"><span class="g">▓</span><span class="g">░</span><span class="g">「</span><span class="g">」</span><span class="g">◈</span><span class="g">◇</span></div>
+            </div>
+            <div class="sec">
+              <div class="seclbl"><span class="chev">▾</span> Recent</div>
+              <div class="grow"><span class="g">⟟</span><span class="g">⌁</span><span class="g">⏿</span><span class="g">→</span><span class="g">⇌</span><span class="g">∎</span></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab"><span class="ic">❒</span>Threads</div>
+            <div class="tab on"><span class="ic">✎</span>Editor</div>
+          </div>
+        </div>
+        <div class="note">Enlarged 40px cells. <b>Favorites</b> + <b>Recent</b> each collapse independently (▾/▸). <b>⤢ browse all</b> opens the full browser (next frame) without leaving the editor.</div>
+      </div>
+
+      <!-- 2. Editor · typing · strip above keyboard (Fav collapsed to show it) -->
+      <div>
+        <p class="cap">Editor · typing · dock above kbd</p>
+        <div class="phone">
+          <div class="topbar"><span class="brand">GLIPH-S</span><span class="chip">Unfiled</span><span class="spacer"></span><span class="chip">280</span><span class="chip">⚙</span></div>
+          <div class="body">
+            <div class="editor">
+              <div class="post">
+                <div class="txt">Ghost protocol online <span class="sym">「◈」</span> shipping today ▓▒░<span style="color:var(--muted)">|</span></div>
+                <footer><span class="counter"><span class="num">218</span></span><span class="spacer"></span><span class="fchip">⧉ copy</span><span class="fchip">↗ 𝕏</span></footer>
+              </div>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dhdr">Glyphs<span class="expand">⤢ browse all</span></div>
+            <div class="sec">
+              <div class="seclbl"><span class="chev">▸</span> Favorites <span style="color:var(--muted)">· collapsed</span></div>
+            </div>
+            <div class="sec">
+              <div class="seclbl"><span class="chev">▾</span> Recent</div>
+              <div class="grow"><span class="g">⟟</span><span class="g">⌁</span><span class="g">⏿</span><span class="g">→</span><span class="g">⇌</span><span class="g">∎</span></div>
+            </div>
+          </div>
+          <div class="kbd">
+            <div class="krow"><span class="key">q</span><span class="key">w</span><span class="key">e</span><span class="key">r</span><span class="key">t</span><span class="key">y</span><span class="key">u</span><span class="key">i</span><span class="key">o</span><span class="key">p</span></div>
+            <div class="krow"><span class="key">a</span><span class="key">s</span><span class="key">d</span><span class="key">f</span><span class="key">g</span><span class="key">h</span><span class="key">j</span><span class="key">k</span><span class="key">l</span></div>
+            <div class="krow"><span class="key">⇧</span><span class="key">z</span><span class="key">x</span><span class="key">c</span><span class="key">v</span><span class="key">b</span><span class="key">n</span><span class="key">m</span><span class="key">⌫</span></div>
+            <div class="krow"><span class="key" style="flex:5">space</span><span class="key" style="flex:2">↵</span></div>
+          </div>
+        </div>
+        <div class="note">Same dock, docked above the keyboard while typing. Here <b>Favorites is collapsed</b> to give Recent more room — collapse either to trade space. Inserts via the <b>insertAtCursor</b> seam.</div>
+      </div>
+
+      <!-- 3. Editor · FULL BROWSER expanded over keyboard (the main flow) -->
+      <div>
+        <p class="cap">Editor · browse-all expanded ★ main flow</p>
+        <div class="phone">
+          <div class="topbar"><span class="brand">GLIPH-S</span><span class="chip">Unfiled</span><span class="spacer"></span><span class="chip">280</span><span class="chip">⚙</span></div>
+          <div class="body">
+            <div class="editor" style="flex:0 0 auto; height:150px">
+              <div class="post">
+                <div class="txt">Ghost protocol online <span class="sym">「◈」</span> ▓▒░<span style="color:var(--muted)">|</span></div>
+              </div>
+            </div>
+            <div class="browsesheet" style="flex:1; overflow:auto">
+              <div class="grab"></div>
+              <div class="tabs" style="display:flex;gap:6px;margin-bottom:9px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em">
+                <span style="padding:5px 9px;border-radius:6px;color:var(--accent);border:1px solid var(--accent)">Symbols</span>
+                <span style="padding:5px 9px;border-radius:6px;color:var(--muted);border:1px solid transparent">Styles</span>
+              </div>
+              <div class="search">⌕ search glyphs…</div>
+              <div class="catrow"><span class="cat on">Box</span><span class="cat">Katakana</span><span class="cat">Arrows</span><span class="cat">Tech</span><span class="cat">Math</span><span class="cat">Warn</span></div>
+              <div class="grid">
+                <b>▓</b><b>▒</b><b>░</b><b>▚</b><b>▞</b><b>▐</b><b>▌</b>
+                <b>┃</b><b>╱</b><b>╲</b><b>◈</b><b>◇</b><b>△</b><b>⌖</b>
+                <b>ｶ</b><b>ﾀ</b><b>ﾅ</b><b>→</b><b>⇌</b><b>∎</b><b>⊕</b>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab"><span class="ic">❒</span>Threads</div>
+            <div class="tab on"><span class="ic">✎</span>Editor</div>
+          </div>
+        </div>
+        <div class="note"><b>Your #1 usage.</b> ⤢ hides the keyboard and grows the dock into the full browser (up to <b>~70%</b> of the screen) — search · category chips · full grid · Styles tab (+ favorites management) — still inside the post/template. Insert a brand-new glyph, collapse back to the strip/handle, keep typing.</div>
+      </div>
+
+      <!-- 4. Threads (Templates nested) -->
+      <div>
+        <p class="cap">Threads tab · Templates nested</p>
+        <div class="phone">
+          <div class="topbar"><span class="brand">GLIPH-S</span><span class="chip">Unfiled</span><span class="spacer"></span><span class="chip">280</span><span class="chip">⚙</span></div>
+          <div class="body">
+            <div class="nav">
+              <div class="seg"><span class="on">Threads</span><span>Templates</span></div>
+              <div class="grp">Projects</div>
+              <div class="item sel">◈ Launch teasers <span class="mut">3</span></div>
+              <div class="item sub">└ cortex-drop</div>
+              <div class="item sub">└ 攻殻 notes</div>
+              <div class="item">◇ Unfiled</div>
+              <div class="item">＋ new thread</div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="tab on"><span class="ic">❒</span>Threads</div>
+            <div class="tab"><span class="ic">✎</span>Editor</div>
+          </div>
+        </div>
+        <div class="note">Templates behind the Threads|Templates segment (usage #3: pick a template → opens in the editor, same glyph dock available). No 4th tab.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ TABLET ============ -->
+  <section class="section">
+    <h2>Tablet / phone-landscape (~768–1080px) · collapsible sidebars</h2>
+    <p class="lede">The desktop 3-pane at ~768 leaves a cramped centre (190 nav + 210 panel). Fix:
+      <b>both sidebars collapse to a labelled rail</b> — tap a rail (or a pane's chevron) to toggle.
+      <b>None auto-collapse — both open by default;</b> collapsing is the user's call. Click the chevrons
+      in the first mock. The second shows the <b>keyboard-open</b> state.</p>
+    <div class="stage">
+      <div>
+        <p class="cap">interactive — click ⟨ / the rails</p>
+        <div class="tablet">
+          <div class="topbar"><span class="brand">GLIPH-S</span><span class="chip">Unfiled</span><span class="spacer"></span><span class="chip">280</span><span class="chip">⚙ settings</span><span class="chip">⇄ json</span></div>
+          <div class="tp" id="tp">
+            <!-- left nav -->
+            <div class="col" id="navcol">
+              <div class="navhdr">Navigator <span class="chev" data-toggle="l">⟨</span></div>
+              <div class="nav" style="flex:1">
+                <div class="grp">Projects</div>
+                <div class="item sel">◈ Launch teasers</div>
+                <div class="item sub">└ cortex-drop</div>
+                <div class="item sub">└ 攻殻 notes</div>
+                <div class="item">◇ Unfiled</div>
+                <div class="grp">Templates</div>
+                <div class="item">▤ CTA — link</div>
+                <div class="item">▤ sign-off</div>
+              </div>
+            </div>
+            <div class="rail hide" id="navrail" data-toggle="l"><span class="chev">⟩</span><span class="ic">❒</span><span class="v">Navigator</span></div>
+            <!-- centre editor -->
+            <div class="col">
+              <div class="editor">
+                <div class="post">
+                  <div class="txt">Ghost protocol online <span class="sym">「◈」</span> shipping the browser today — <span class="sym">▓▒░</span> curated glyphs, weighted counts, zero backend. <span class="over">this fragment pushes past the limit and shades as you type ▮▮▮</span></div>
+                  <footer><span class="counter"><span class="num warn">−12</span></span><span class="spacer"></span><span class="fchip">⧉ copy</span><span class="fchip">↗ 𝕏</span></footer>
+                </div>
+                <div class="post"><div class="txt">Post 02 <span class="sym">⟟ ⌁ ⏿</span> thread continues…</div>
+                  <footer><span class="counter"><span class="num">41</span></span><span class="spacer"></span><span class="fchip">⧉ copy</span><span class="fchip">↗ 𝕏</span></footer></div>
+              </div>
+            </div>
+            <!-- right panel -->
+            <div class="col" id="panelcol">
+              <div class="navhdr">Symbols / Styles <span class="chev" data-toggle="r">⟩</span></div>
+              <div class="panel" style="flex:1">
+                <div class="tabs"><span class="on">Symbols</span><span>Styles</span></div>
+                <div class="search">⌕ search…</div>
+                <div class="ruler"></div>
+                <div class="grid"><b>「</b><b>」</b><b>◈</b><b>◇</b><b>▓</b><b>░</b><b>⟟</b><b>⌁</b><b>⏿</b><b>▮</b><b>△</b><b>⌖</b></div>
+                <div class="marks"><span class="circ">76</span><span>CE</span><span>⇄</span><span class="code">MG_990X</span></div>
+              </div>
+            </div>
+            <div class="rail hide" id="panelrail" data-toggle="r"><span class="chev">⟨</span><span class="ic">◇</span><span class="v">Symbols</span></div>
+          </div>
+        </div>
+        <p class="tabtoggle">Try it: collapse the right panel to hand the centre <b>~210px</b> back for writing; collapse both for a full-width single-column editor on a small landscape phone.</p>
+      </div>
+
+      <!-- keyboard-open tablet -->
+      <div>
+        <p class="cap">keyboard open · panes compress above it</p>
+        <div class="tablet" style="height:500px">
+          <div class="topbar"><span class="brand">GLIPH-S</span><span class="chip">Unfiled</span><span class="spacer"></span><span class="chip">280</span><span class="chip">⚙ settings</span><span class="chip">⇄ json</span></div>
+          <div class="tp" style="flex:0 0 auto; height:250px">
+            <div class="col">
+              <div class="navhdr">Navigator <span class="chev">⟨</span></div>
+              <div class="nav" style="flex:1">
+                <div class="grp">Projects</div>
+                <div class="item sel">◈ Launch teasers</div>
+                <div class="item sub">└ cortex-drop</div>
+                <div class="item sub">└ 攻殻 notes</div>
+                <div class="grp">Templates</div>
+                <div class="item">▤ CTA — link</div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="editor">
+                <div class="post">
+                  <div class="txt">Ghost protocol online <span class="sym">「◈」</span> shipping today — <span class="sym">▓▒░</span> curated glyphs<span style="color:var(--muted)">|</span></div>
+                  <footer><span class="counter"><span class="num">218</span></span><span class="spacer"></span><span class="fchip">⧉ copy</span><span class="fchip">↗ 𝕏</span></footer>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="navhdr">Symbols / Styles <span class="chev">⟩</span></div>
+              <div class="panel" style="flex:1">
+                <div class="tabs"><span class="on">Symbols</span><span>Styles</span></div>
+                <div class="search">⌕ search…</div>
+                <div class="grid"><b>「</b><b>」</b><b>◈</b><b>◇</b><b>▓</b><b>░</b><b>⟟</b><b>⌁</b><b>⏿</b><b>▮</b><b>△</b><b>⌖</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="kbd" style="height:212px">
+            <div class="krow"><span class="key">q</span><span class="key">w</span><span class="key">e</span><span class="key">r</span><span class="key">t</span><span class="key">y</span><span class="key">u</span><span class="key">i</span><span class="key">o</span><span class="key">p</span></div>
+            <div class="krow"><span class="key">a</span><span class="key">s</span><span class="key">d</span><span class="key">f</span><span class="key">g</span><span class="key">h</span><span class="key">j</span><span class="key">k</span><span class="key">l</span></div>
+            <div class="krow"><span class="key">⇧</span><span class="key">z</span><span class="key">x</span><span class="key">c</span><span class="key">v</span><span class="key">b</span><span class="key">n</span><span class="key">m</span><span class="key">⌫</span></div>
+            <div class="krow"><span class="key" style="flex:5">space</span><span class="key" style="flex:2">↵</span></div>
+          </div>
+        </div>
+        <div class="note">On tablet the <b>right panel keeps serving glyphs</b> — no dock needed. The 3 panes just compress into the height above the keyboard; symbols stay one tap away in their column (collapse it if you want the centre taller).</div>
+      </div>
+    </div>
+  </section>
+
+</div>
 
 <script>
-// ── shared fragments ──────────────────────────────────────────────
-const top = (limit='280', extra='') => `
-  <div class="top"><span class="brand">TWEET·TYPER</span>${extra}
-    <span class="spacer"></span><span class="limit">${limit}</span><span class="cog">⚙</span></div>`;
-
-const tab = (ic, name, on) => `<div class="tab ${on?'on':''}"><span class="ic">${ic}</span>${name}</div>`;
-
-const threadsPane = (withTemplatesSeg) => `
-  <div class="pane">
-    ${withTemplatesSeg ? `<div class="seg"><span class="on">Threads</span><span>Templates</span></div>`:''}
-    <div class="plabel">Projects</div>
-    <div class="row sel">◇ Launch copy <span class="mut">3 posts</span></div>
-    <div class="row">◇ Bio drafts <span class="mut">1</span></div>
-    <div class="row">＋ new thread</div>
-    ${!withTemplatesSeg ? `<div class="plabel" style="margin-top:14px">Templates</div>
-      <div class="row">⧉ CTA footer</div><div class="row">⧉ Signature</div>`:''}
-  </div>`;
-
-const templatesPane = () => `
-  <div class="pane">
-    <div class="plabel">Templates</div>
-    <div class="row sel">⧉ CTA footer <span class="mut">copy</span></div>
-    <div class="row">⧉ Signature <span class="mut">copy</span></div>
-    <div class="row">⧉ Thread intro <span class="mut">copy</span></div>
-    <div class="row">＋ new template</div>
-  </div>`;
-
-const editorPane = () => `
-  <div class="pane">
-    <div class="plabel">Launch copy · Post 1/3</div>
-    <div class="post">
-      <div class="txt">The future is already here ⟨▓⟩ <span class="over">it's just not evenly distributed everywhere yet friend</span></div>
-      <div class="gauge"></div>
-      <div class="pfoot"><span class="chip">⧉ copy</span><span class="chip">↗ 𝕏</span></div>
-    </div>
-    <div class="post"><div class="txt" style="min-height:34px;color:var(--muted)">Post 2 …</div></div>
-  </div>`;
-
-const symbolBrowser = () => `
-  <div class="searchbox">⌕ search glyphs…</div>
-  <div class="chips-cat"><span class="catchip on">Fav</span><span class="catchip">Katakana</span>
-    <span class="catchip">Box</span><span class="catchip">Arrows</span><span class="catchip">Tech</span><span class="catchip">Styles</span></div>
-  <div class="ggrid">
-    ${'▓ ░ ▚ ⟨ ⟩ ◇ ▶ ⚠ ⌁ ┃ ╱ ⬡ ⟡ ⇥ ⌖ ◈ ⊹ ⟢'.split(' ').map(g=>`<div class="glyph">${g}</div>`).join('')}
-  </div>`;
-
-const strip = (expandTo) => `
-  <div class="strip">
-    <div class="srow"><span class="glyph lbl">FAV</span>
-      ${'▓ ░ ⟨ ⟩ ◇ ⚠'.split(' ').map(g=>`<div class="glyph">${g}</div>`).join('')}
-      <div class="glyph exp" title="${expandTo}">${expandTo==='sheet'?'⤢':'▤'}</div></div>
-    <div class="srow"><span class="glyph lbl">REC</span>
-      ${'▶ ┃ ╱ ⌁ ⬡ ▚'.split(' ').map(g=>`<div class="glyph">${g}</div>`).join('')}
-      <div class="glyph exp" style="visibility:hidden">·</div></div>
-  </div>`;
-
-const keyboard = () => `
-  <div class="kbd">
-    <div class="krow">${'qwertyuiop'.split('').map(k=>`<div class="key">${k}</div>`).join('')}</div>
-    <div class="krow">${'asdfghjkl'.split('').map(k=>`<div class="key">${k}</div>`).join('')}</div>
-    <div class="krow"><div class="key">⇧</div>${'zxcvbnm'.split('').map(k=>`<div class="key">${k}</div>`).join('')}<div class="key">⌫</div></div>
-    <div class="krow"><div class="key" style="flex:5">space</div><div class="key" style="flex:2">↵</div></div>
-  </div>`;
-
-const phone = (cap, inner, note='') => `
-  <div><p class="cap">${cap}</p><div class="phone">${inner}</div>${note?`<div class="note">${note}</div>`:''}</div>`;
-
-const tablet = (cap, inner, note='') => `
-  <div><p class="cap">${cap}</p><div class="tablet">${inner}</div>${note?`<div class="note">${note}</div>`:''}</div>`;
-
-// ── VARIANTS ──────────────────────────────────────────────────────
-const VARIANTS = {
-  A: { name: 'Minimal 3-tab · Templates nested · full browser = Symbols tab · collapsible tablet panel',
-    render: () => `
-      <h1>Variant A — Minimal 3-tab</h1>
-      <p class="sub">Q1 nested · Q2 own tab · Q3 collapsible</p>
-      <p class="qline">Bottom bar is just <b>Threads · Editor · Symbols</b>. Templates live inside the
-        Threads segment behind a Threads|Templates toggle (matches today's single left nav). The strip's
-        <b>▤</b> button just <b>jumps to the Symbols tab</b> — one place for the full browser, no sheet.
-        Tablet band: right panel <b>collapses to a rail</b> you tap to expand.</p>
-      <div class="stage">
-        ${phone('portrait · default = Editor', top()+`<div class="body">${editorPane()}</div>`+
-          `<div class="tabbar">${tab('❒','Threads')}${tab('✎','Editor',1)}${tab('◇','Symbols')}</div>`,
-          'Fewest tabs. Templates cost one extra tap (toggle inside Threads).')}
-        ${phone('editor + above-kbd strip', top()+`<div class="body">${editorPane()}</div>`+strip('tab')+keyboard(),
-          'Strip = fav+recent quick-insert. ▤ switches to the Symbols tab for search / categories / Styles.')}
-        ${tablet('~820px tablet — right panel collapsed to rail',
-          top()+`<div class="tp collapsed">
-            <div>${threadsPane(true)}</div>
-            <div class="body">${editorPane()}</div>
-            <div class="railcol"><span class="ic">◇</span><span class="v">Symbols ▸</span></div>
-          </div>`,
-          'Center gets room back. Tap the rail to slide the symbol panel over.')}
-      </div>` },
-
-  B: { name: '4-tab · Templates = own tab · full browser = Symbols tab · cramped-but-honest tablet',
-    render: () => `
-      <h1>Variant B — Everything is a tab (4-tab)</h1>
-      <p class="sub">Q1 own tab · Q2 own tab · Q3 accept 3-pane</p>
-      <p class="qline">Bottom bar gains a 4th segment: <b>Threads · Editor · Symbols · Templates</b>.
-        Flat, discoverable, every top-level thing is one tap. The strip's <b>▤</b> jumps to the Symbols
-        tab. Tablet band: keep the <b>full 3-pane</b> even when tight — no new collapse mechanic to learn.</p>
-      <div class="stage">
-        ${phone('portrait · Templates tab', top()+`<div class="body">${templatesPane()}</div>`+
-          `<div class="tabbar">${tab('❒','Thr')}${tab('✎','Edit')}${tab('◇','Sym')}${tab('⧉','Tmpl',1)}</div>`,
-          'Templates are first-class & one tap. Cost: 4 tabs = tighter, smaller touch targets.')}
-        ${phone('editor + above-kbd strip', top()+`<div class="body">${editorPane()}</div>`+strip('tab')+
-          `<div class="tabbar">${tab('❒','Thr')}${tab('✎','Edit',1)}${tab('◇','Sym')}${tab('⧉','Tmpl')}</div>`,
-          'Note the strip sits above the tab bar too — both visible while typing.')}
-        ${tablet('~820px tablet — full 3-pane, cramped',
-          top()+`<div class="tp cramped">
-            <div>${threadsPane(false)}</div>
-            <div class="body">${editorPane()}</div>
-            <div>${'<div class="pane">'+symbolBrowser()+'</div>'}</div>
-          </div>`,
-          'Center is only ~440px — tight but nothing to learn. Symbols always visible (the core feature).')}
-      </div>` },
-
-  C: { name: 'Editor-centric · 2 tabs · everything = bottom sheets · strip expands to full sheet',
-    render: () => `
-      <h1>Variant C — Editor-centric, sheets</h1>
-      <p class="sub">Q1 sheet · Q2 expand-to-sheet · Q3 collapsible</p>
-      <p class="qline">Writing is the whole screen. Bottom bar is just <b>Threads · Editor</b>. Templates &
-        the full Symbol/Styles browser are <b>bottom sheets</b> — the strip's <b>⤢</b> expands into a
-        full symbol sheet without leaving the editor; templates open from a top-bar <b>⧉</b>. Fewest tabs,
-        most gestures. Tablet: right panel is a collapsible sheet-from-edge.</p>
-      <div class="stage">
-        ${phone('editor + expanded symbol SHEET', top('280','<span class="cog">⧉</span>')+
-          `<div class="body">${editorPane()}
-            <div class="sheet">
-              <div class="grab"></div>
-              <div class="sheettabs"><span class="sheettab on">Symbols</span><span class="sheettab">Styles</span></div>
-              ${symbolBrowser()}
-            </div>
-          </div>`+
-          `<div class="tabbar">${tab('❒','Threads')}${tab('✎','Editor',1)}</div>`,
-          'Strip ⤢ slides this sheet up over the keyboard. Full browser without a tab switch.')}
-        ${phone('editor + collapsed strip (sheet down)', top('280','<span class="cog">⧉</span>')+
-          `<div class="body">${editorPane()}</div>`+strip('sheet')+keyboard(),
-          '⤢ on the strip is the affordance to expand. ⧉ in the top bar opens Templates as a sheet.')}
-        ${tablet('~820px tablet — panel as edge sheet',
-          top('280','<span class="cog">⧉</span>')+`<div class="tp collapsed">
-            <div>${threadsPane(false)}</div>
-            <div class="body">${editorPane()}</div>
-            <div class="railcol"><span class="ic">◇</span><span class="v">Symbols ▸</span></div>
-          </div>`,
-          'Same collapsible-rail idea as A, but symbols open as an overlay sheet, not an inline column.')}
-      </div>` },
-};
-
-// ── switcher wiring ───────────────────────────────────────────────
-const keys = Object.keys(VARIANTS);
-function current() {
-  const p = new URLSearchParams(location.search).get('variant');
-  return keys.includes(p) ? p : 'A';
-}
-function setVariant(k) {
-  const u = new URL(location); u.searchParams.set('variant', k); history.replaceState({}, '', u);
-  render();
-}
-function render() {
-  const k = current();
-  document.getElementById('app').innerHTML = VARIANTS[k].render();
-  document.getElementById('vlabel').innerHTML = `<b>${k}</b> — ${VARIANTS[k].name}`;
-}
-function cycle(d) {
-  const i = keys.indexOf(current());
-  setVariant(keys[(i + d + keys.length) % keys.length]);
-}
-document.getElementById('prev').onclick = () => cycle(-1);
-document.getElementById('next').onclick = () => cycle(1);
-addEventListener('keydown', e => {
-  const t = e.target;
-  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-  if (e.key === 'ArrowLeft') cycle(-1);
-  if (e.key === 'ArrowRight') cycle(1);
-});
-render();
+  // Interactive tablet collapse. Each rail/chevron carries data-toggle="l"|"r".
+  const tp = document.getElementById('tp');
+  const set = {
+    l(on){ tp.classList.toggle('lc', on); document.getElementById('navcol').classList.toggle('hide', on); document.getElementById('navrail').classList.toggle('hide', !on); },
+    r(on){ tp.classList.toggle('rc', on); document.getElementById('panelcol').classList.toggle('hide', on); document.getElementById('panelrail').classList.toggle('hide', !on); },
+  };
+  const state = { l:false, r:false };
+  document.querySelectorAll('[data-toggle]').forEach(el => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => { const k = el.dataset.toggle; state[k] = !state[k]; set[k](state[k]); });
+  });
 </script>
 </body>
 </html>
