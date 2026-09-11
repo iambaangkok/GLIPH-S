@@ -287,6 +287,39 @@ describe('export → import replace round-trip', () => {
   })
 })
 
+describe('createThread ordering', () => {
+  it('prepends a new thread to the top of its project', () => {
+    const projectId = getDefaultProjectId()
+    const first = createThread(projectId, 'First created')
+    const second = createThread(projectId, 'Second created')
+
+    const threadIds = getState().projects[projectId].threadIds
+    // Most recently created lands at index 0.
+    expect(threadIds[0]).toBe(second.id)
+    expect(threadIds.indexOf(second.id)).toBeLessThan(threadIds.indexOf(first.id))
+  })
+})
+
+describe('createPost position', () => {
+  it('appends to the bottom by default', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Post position thread')
+    const p1 = createPost(thread.id, 'Bottom 1')
+    const p2 = createPost(thread.id, 'Bottom 2')
+
+    expect(getState().threads[thread.id].postIds).toEqual([p1.id, p2.id])
+  })
+
+  it('prepends to the top when position is "top"', () => {
+    const projectId = getDefaultProjectId()
+    const thread = createThread(projectId, 'Post top thread')
+    const p1 = createPost(thread.id, 'Existing')
+    const p2 = createPost(thread.id, 'Added at top', 'top')
+
+    expect(getState().threads[thread.id].postIds).toEqual([p2.id, p1.id])
+  })
+})
+
 describe('reorderPost', () => {
   it('moves a post within its thread (forward)', () => {
     const projectId = getDefaultProjectId()
@@ -357,28 +390,31 @@ describe('reorderPost', () => {
 
   it('reorderThread still works as before (regression guard)', () => {
     const projectId = getDefaultProjectId()
+    // createThread prepends, so creation order T1,T2,T3 → [T3, T2, T1].
     const t1 = createThread(projectId, 'T1')
     const t2 = createThread(projectId, 'T2')
     const t3 = createThread(projectId, 'T3')
 
+    // Move the first entry (T3) to last.
     reorderThread(projectId, 0, 2)
 
     const threadIds = getState().projects[projectId].threadIds
-    expect(threadIds).toEqual([t2.id, t3.id, t1.id])
+    expect(threadIds).toEqual([t2.id, t1.id, t3.id])
   })
 })
 
 describe('moveThread (drag reorder + cross-project)', () => {
   it('reorders within a project by inserting before a sibling', () => {
     const projectId = getDefaultProjectId()
+    // createThread prepends, so creation order A,B,C → [C, B, A].
     const t1 = createThread(projectId, 'A')
     const t2 = createThread(projectId, 'B')
     const t3 = createThread(projectId, 'C')
 
-    // Move C before A → [C, A, B]
+    // Start [C, B, A]; move C before A → [B, C, A]
     moveThread(t3.id, projectId, t1.id)
 
-    expect(getState().projects[projectId].threadIds).toEqual([t3.id, t1.id, t2.id])
+    expect(getState().projects[projectId].threadIds).toEqual([t2.id, t3.id, t1.id])
   })
 
   it('appends within a project when beforeThreadId is null', () => {

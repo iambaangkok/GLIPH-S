@@ -263,7 +263,13 @@ Fog — graduates into sharp tickets as the decisions above resolve:
 - **Analytics** — now that it's live, know whether anyone visits. Open frontier ticket:
   [Add Google Analytics (GA4) to GLIPH-S](../issues/20-google-analytics.md) — a setup guide (task):
   GA4 property → gtag snippet in `index.html` → verify in Realtime. Notes a cookieless Cloudflare
-  Web Analytics alternative. **Currently the sole open frontier ticket.**
+  Web Analytics alternative.
+
+- **Post-launch UX polish** — open frontier ticket:
+  [v0.2.0 UX tweaks: new-thread-on-top · add-post-at-top · post timestamps](../issues/21-v020-ux-tweaks.md)
+  — a task batching three already-sharp tweaks: new threads land at the top of their project, an
+  add-post button at the top of the post stack, and dimmed created/updated timestamps in each Post
+  header. Ships as **v0.2.0** (minor). Open alongside analytics (#20).
 
 - **Contributor workflow** — [CLAUDE.md](../../../CLAUDE.md) now codifies: work on a branch (never
   commit to master directly), and any website change landing on master bumps the app version

@@ -45,6 +45,23 @@ import {
 } from './WeightedTextEditor.tsx'
 import { TemplateEditor } from './TemplateEditor.tsx'
 
+// ── helpers ─────────────────────────────────────────────────────────────────
+
+/** Short, locale date-time for the dimmed post-header metadata. */
+function formatStamp(ms: number): string {
+  return new Date(ms).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+/** Full timestamp for the header tooltip. */
+function formatStampFull(ms: number): string {
+  return new Date(ms).toLocaleString()
+}
+
 // ── PostEditor ────────────────────────────────────────────────────────────────
 
 interface PostEditorProps {
@@ -181,9 +198,20 @@ function PostEditor({
 
         <span
           className="label-mono"
-          style={{ flex: 1, fontSize: 9, opacity: 0.55 }}
+          style={{ fontSize: 9, opacity: 0.55 }}
         >
           {index + 1} / {total}
+        </span>
+
+        <span
+          className="label-mono"
+          style={{ flex: 1, fontSize: 9, opacity: 0.4, textAlign: 'right' }}
+          title={`Created ${formatStampFull(post.createdAt)} · Updated ${formatStampFull(post.updatedAt)}`}
+        >
+          {formatStamp(post.createdAt)}
+          {post.updatedAt !== post.createdAt && (
+            <> · edited {formatStamp(post.updatedAt)}</>
+          )}
         </span>
 
         <button
@@ -317,9 +345,9 @@ export function ThreadEditor(): JSX.Element {
     )
   }
 
-  function handleAddPost() {
+  function handleAddPost(position: 'top' | 'bottom' = 'bottom') {
     if (!selectedThreadId) return
-    createPost(selectedThreadId, '')
+    createPost(selectedThreadId, '', position)
   }
 
   return (
@@ -360,7 +388,7 @@ export function ThreadEditor(): JSX.Element {
           type="button"
           aria-label="Add post"
           className="chip chip--accent"
-          onClick={handleAddPost}
+          onClick={() => handleAddPost('bottom')}
         >
           + post
         </button>
@@ -388,13 +416,25 @@ export function ThreadEditor(): JSX.Element {
           <button
             type="button"
             className="chip chip--accent"
-            onClick={handleAddPost}
+            onClick={() => handleAddPost('bottom')}
           >
             + add first post
           </button>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* Add a post at the top */}
+          <div style={{ display: 'flex', justifyContent: 'center', paddingBottom: 4 }}>
+            <button
+              type="button"
+              className="chip"
+              onClick={() => handleAddPost('top')}
+              style={{ opacity: 0.65 }}
+            >
+              + post
+            </button>
+          </div>
+
           {posts.map((post, idx) => (
             <PostEditor
               key={post.id}
@@ -421,7 +461,7 @@ export function ThreadEditor(): JSX.Element {
             <button
               type="button"
               className="chip"
-              onClick={handleAddPost}
+              onClick={() => handleAddPost('bottom')}
               style={{ opacity: 0.65 }}
             >
               + post

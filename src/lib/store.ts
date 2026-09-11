@@ -363,7 +363,7 @@ export function createThread(projectId: string, title: string = ''): Thread {
   mutate('projects', () => {
     state.projects[projectId] = {
       ...project,
-      threadIds: [...project.threadIds, thread.id],
+      threadIds: [thread.id, ...project.threadIds],
       updatedAt: now(),
     }
   })
@@ -527,7 +527,11 @@ export function reorderPost(threadId: string, fromIndex: number, toIndex: number
 /**
  * Create a Post in a Thread, appended at the end.
  */
-export function createPost(threadId: string, content: string = ''): Post {
+export function createPost(
+  threadId: string,
+  content: string = '',
+  position: 'top' | 'bottom' = 'bottom',
+): Post {
   const thread = state.threads[threadId]
   if (!thread) throw new Error(`Thread ${threadId} not found`)
 
@@ -537,7 +541,10 @@ export function createPost(threadId: string, content: string = ''): Post {
   mutate('threads', () => {
     state.threads[threadId] = {
       ...thread,
-      postIds: [...thread.postIds, post.id],
+      postIds:
+        position === 'top'
+          ? [post.id, ...thread.postIds]
+          : [...thread.postIds, post.id],
       updatedAt: now(),
     }
   })
