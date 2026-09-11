@@ -57,6 +57,19 @@ function TopBar({ mobile }: { mobile?: boolean }): JSX.Element {
         color: 'var(--muted)',
       }}
     >
+      <svg
+        width="15"
+        height="15"
+        viewBox="0 0 48 48"
+        aria-hidden="true"
+        style={{ display: 'block', flex: '0 0 auto' }}
+      >
+        <g fill="var(--accent)">
+          <circle cx="24" cy="16" r="5.2" />
+          <circle cx="15" cy="32" r="5.2" />
+          <circle cx="33" cy="32" r="5.2" />
+        </g>
+      </svg>
       <span style={{ color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.18em' }}>
         GLIPH-S
       </span>
@@ -70,7 +83,7 @@ function TopBar({ mobile }: { mobile?: boolean }): JSX.Element {
           letterSpacing: '0.08em',
         }}
       >
-        v0.1.0
+        v0.2.0
       </span>
       <div style={{ flex: 1 }} />
       <SettingsMenu sheet={mobile} />
