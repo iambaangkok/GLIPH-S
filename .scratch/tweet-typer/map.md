@@ -256,9 +256,18 @@ Hierarchy: **Project › Thread › Post.**
 
 Fog — graduates into sharp tickets as the decisions above resolve:
 
-- **Shipping / deployment — DONE.** GLIPH-S is live on Cloudflare at
+- **Shipping / deployment — LIVE.** GLIPH-S is live on Cloudflare at
   https://gliph-s.iambaangkok.dev/ (see the deploy decision above). `iambaangkok.dev` is on
-  Cloudflare and can host future project subdomains. No open shipping tickets remain.
+  Cloudflare and can host future project subdomains.
+
+- **Analytics** — now that it's live, know whether anyone visits. Open frontier ticket:
+  [Add Google Analytics (GA4) to GLIPH-S](../issues/20-google-analytics.md) — a setup guide (task):
+  GA4 property → gtag snippet in `index.html` → verify in Realtime. Notes a cookieless Cloudflare
+  Web Analytics alternative. **Currently the sole open frontier ticket.**
+
+- **Contributor workflow** — [CLAUDE.md](../../../CLAUDE.md) now codifies: work on a branch (never
+  commit to master directly), and any website change landing on master bumps the app version
+  (badge in `src/App.tsx` + `package.json`, kept in sync).
 
 - **Build/execution work** — **all decisions resolved; graduated into execution tickets 07–14, and
   every one of 07–14 is now resolved** (07 scaffold+tokens, 08 persistence, 09 navigator, 10 editor+counter,
@@ -266,8 +275,8 @@ Fog — graduates into sharp tickets as the decisions above resolve:
   MVP execution set is complete; later polish/UX lives in tickets 15–16 — **both now resolved**.
   Responsive work is **complete: 16's graduated children — prototype #17 → build #18 — are both
   now resolved.** #18 shipped the mobile 2-tab shell + in-editor glyph dock, desktop collapsible
-  sidebars, mobile settings sheet, and ≥44px touch targets. **No open children remain — the map is
-  complete.** Seams live: `useSelection()`
+  sidebars, mobile settings sheet, and ≥44px touch targets. **The MVP + responsive + shipping set is
+  complete and live; the open frontier is now post-launch: analytics (#20).** Seams live: `useSelection()`
   (`src/lib/SelectionContext.tsx`, active thread — **now persisted to the `tt:ui` store** added by 15)
   and the **cursor-aware insertion seam** `useInsertion()` in
   `src/lib/InsertionContext.tsx` — `insertAtCursor()` (established by 10) **plus `transformSelection()`
