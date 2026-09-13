@@ -1,14 +1,13 @@
 # Add Google Analytics (GA4) to GLIPH-S
 
 Type: task
-Status: in progress
+Status: completed
 Blocked by:
 
-> **Progress (2026-09-13, branch `issue-20-google-analytics`):** Step 1 done by user
-> (Measurement ID `G-DFQZGPEKPN`). Steps 2, 4, 5 done by agent — gtag snippet added to
-> `index.html`, version bumped `v0.2.0 → v0.3.0` (badge + `package.json`), build/test/lint green.
-> **Remaining human step:** the Realtime/DebugView dashboard check (agent can't see GA), and the
-> merge-to-master to deploy.
+> **Completed (2026-09-13):** Step 1 by user (Measurement ID `G-DFQZGPEKPN`). Steps 2, 4, 5 by agent
+> — gtag snippet added to `index.html`, version bumped `v0.2.0 → v0.3.0` (badge + `package.json`),
+> build/test/lint green. Merged to `master` (commit `2cfe75a`) and pushed → Cloudflare auto-deployed
+> to https://gliph-s.iambaangkok.dev/.
 
 ## Question
 
