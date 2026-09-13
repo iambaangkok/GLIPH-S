@@ -252,6 +252,14 @@ Hierarchy: **Project › Thread › Post.**
   `pnpm-workspace.yaml` missing `packages:` (commit `0e0cbc7`) and missing wrangler assets config
   (commit `8a2489d`). "BK SYSTEMS" kept as UI wordmark, not the address.
 
+- [v0.2.0 UX tweaks: new-thread-on-top · add-post-at-top · post timestamps](../issues/21-v020-ux-tweaks.md) —
+  post-launch polish, **shipped as v0.2.0** (merge `dc9991c`, feature `7320b08`, live). New threads
+  prepend to their project (`createThread`); `createPost` gained a `position: 'top' | 'bottom'` arg
+  behind a new top "+ post" button; each Post header shows dimmed created/`· edited` timestamps.
+  **Rebrand rolled into the same version:** favicon → the ⛬ three-dot techwear mark, same mark left
+  of the top-bar wordmark, title → `GLIPH-S | sci-fi symbol composer for X`. Version bumped to
+  `v0.2.0` (badge + package.json, aligned from the trailing `0.0.0`). 66/66 tests; build + lint green.
+
 ## Not yet specified
 
 Fog — graduates into sharp tickets as the decisions above resolve:
@@ -264,12 +272,6 @@ Fog — graduates into sharp tickets as the decisions above resolve:
   [Add Google Analytics (GA4) to GLIPH-S](../issues/20-google-analytics.md) — a setup guide (task):
   GA4 property → gtag snippet in `index.html` → verify in Realtime. Notes a cookieless Cloudflare
   Web Analytics alternative.
-
-- **Post-launch UX polish** — open frontier ticket:
-  [v0.2.0 UX tweaks: new-thread-on-top · add-post-at-top · post timestamps](../issues/21-v020-ux-tweaks.md)
-  — a task batching three already-sharp tweaks: new threads land at the top of their project, an
-  add-post button at the top of the post stack, and dimmed created/updated timestamps in each Post
-  header. Ships as **v0.2.0** (minor). Open alongside analytics (#20).
 
 - **Contributor workflow** — [CLAUDE.md](../../../CLAUDE.md) now codifies: work on a branch (never
   commit to master directly), and any website change landing on master bumps the app version

@@ -1,7 +1,7 @@
 # v0.2.0 UX tweaks: new-thread-on-top · add-post-at-top · post timestamps
 
 Type: task
-Status: open
+Status: completed
 Blocked by:
 
 ## Question
@@ -57,3 +57,24 @@ currently shows only `index / total`. Add a dimmed created + last-updated timest
   each post header shows dimmed created/updated times.
 - `pnpm build`, `pnpm test`, `pnpm lint` all pass.
 - Version bumped to `v0.2.0` in App.tsx badge **and** package.json, kept in sync.
+
+---
+
+## Resolution
+
+**Shipped in v0.2.0** — merged to `master` (`dc9991c`, feature commit `7320b08`) and deployed to
+https://gliph-s.iambaangkok.dev/.
+
+- **New thread on top** — `createThread` prepends to `project.threadIds` ([store.ts:366](../../../src/lib/store.ts#L366)).
+- **Add-post-at-top** — `createPost` gained a `position: 'top' | 'bottom'` arg; a dimmed "+ post"
+  button sits above the post stack ([ThreadEditor.tsx](../../../src/ThreadEditor.tsx)); the three
+  existing add-post handlers wrapped as `() => handleAddPost('bottom')`.
+- **Post timestamps** — dimmed created (+ `· edited …` when changed) in each Post header via
+  `formatStamp`/`formatStampFull`, with a full-timestamp tooltip.
+- **Rebrand (extra scope, same version):** favicon replaced with the ⛬ three-dot techwear mark
+  ([public/favicon.svg](../../../public/favicon.svg)); same mark added left of the wordmark in the
+  top bar ([App.tsx](../../../src/App.tsx)); title set to `GLIPH-S | sci-fi symbol composer for X`
+  ([index.html](../../../index.html)).
+- **Version** → `v0.2.0` in the App.tsx badge and `package.json`.
+- Tests: added `createThread ordering` + `createPost position` blocks; updated the pre-existing
+  `reorderThread`/`moveThread` tests for the new prepend order. **66/66 pass**; build + lint green.
