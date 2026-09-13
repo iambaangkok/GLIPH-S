@@ -83,7 +83,7 @@ function TopBar({ mobile }: { mobile?: boolean }): JSX.Element {
           letterSpacing: '0.08em',
         }}
       >
-        v0.2.0
+        v0.3.0
       </span>
       <div style={{ flex: 1 }} />
       <SettingsMenu sheet={mobile} />
